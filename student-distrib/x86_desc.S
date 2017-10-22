@@ -7,7 +7,7 @@
 .text
 
 .globl ldt_size, tss_size
-.globl gdt_desc, ldt_desc, tss_desc
+.globl gdt_desc, ldt_desc, tss_desc, gdt_base_info,
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
 .globl idt_desc_ptr, idt
@@ -84,6 +84,10 @@ ldt_desc_ptr:
 
 gdt_bottom:
 
+gdt_base_info:
+    .word gdt_bottom - gdt - 1 #first 2bytes for limit
+    .long gdt #4bytes for gdt base address
+    
     .align 16
 ldt:
     .rept 4
