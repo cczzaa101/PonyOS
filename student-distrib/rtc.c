@@ -18,7 +18,7 @@ void rtc_init()
     outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
     unsigned char prev =  inb(RTC_DATA_PORT);
     outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
-    outb(RTC_DATA_PORT, (prev&0xF0)|rate); //&0xf0 to clear lowest 4bits, | rate to reset the rate
+    outb((prev&0xF0)|rate, RTC_DATA_PORT); //&0xf0 to clear lowest 4bits, | rate to reset the rate
     
     /*turn on irq8*/
     outb(NMI_MASK + 0x0B, RTC_REGISTER_PORT); //select port B
@@ -36,7 +36,8 @@ void rtc_interrupt_handler()
 {
     cli();
     /*check register C*/
-    
+    clear();
+    printf("rtc is runnint");
     outb(NMI_MASK+0x0c, RTC_REGISTER_PORT);
     char temp = inb(RTC_DATA_PORT);
     temp = '\n';

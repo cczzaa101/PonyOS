@@ -103,6 +103,7 @@ void exception_xf()
 void general_handler()
 {
     cli();
+    clear();
     printf("out of the world, there is you interruption.");
     sti();
 }
@@ -136,17 +137,17 @@ void initialize_idt()
             idt[i].dpl = 3;
         else idt[i].dpl = 0; // exception level for default
         
-     idt[i].present = 1; // 1 for used interrupt, 0 for unused
+        idt[i].present = 1; // 1 for used interrupt, 0 for unused
         idt[i].seg_selector = KERNEL_CS;
         idt[i].reserved0 = 0; //storage segment, always 0
         idt[i].size = 1; //1 for 32bit
         idt[i].reserved1 = 1;
         idt[i].reserved2 = 1;
         idt[i].reserved4 = 0;//unused bits
-        if(i>=INTERRUPT_START_INDEX)
+        if(i>=0x20)
         {
             idt[i].reserved3 = 0; //use interrupt gate for interrupts
-            SET_IDT_ENTRY(idt[i], general_handler);
+            SET_IDT_ENTRY(idt[i], general_handler_wrapper);
         }
         else idt[i].reserved3 = 1;
         

@@ -3,6 +3,7 @@
 #include "x86_desc.h"
 .global keyboard_handler_wrapper
 .global rtc_handler_wrapper
+.global general_handler_wrapper
 .align 4
 
     
@@ -17,5 +18,12 @@ rtc_handler_wrapper:
     pusha
     cld
     call rtc_interrupt_handler
+    popa
+    iret
+
+general_handler_wrapper:
+    pusha
+    cld
+    call general_handler
     popa
     iret

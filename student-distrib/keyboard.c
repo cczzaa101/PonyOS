@@ -15,6 +15,7 @@ void keyboard_init()
 void keyboard_interrupt_handler()
 {
     cli(); //disable interrupts
+    clear();
     unsigned char keyboard_buffer;
     while( (inb(KEYBOARD_STATUS_PORT)&0x1)>0 ) //the buffer is still full
     {
