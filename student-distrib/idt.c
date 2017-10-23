@@ -7,6 +7,9 @@
 #define PIC_OFFSET 0x20
 
 /*print exception information*/ 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_de()
 {
     cli();
@@ -15,6 +18,9 @@ void exception_de()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_db()
 {
     cli();
@@ -23,6 +29,9 @@ void exception_db()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_nmi()
 {
     cli();
@@ -31,6 +40,9 @@ void exception_nmi()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_bp()
 {
     cli();
@@ -39,6 +51,9 @@ void exception_bp()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_of()
 {
     cli();
@@ -47,6 +62,9 @@ void exception_of()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_br()
 {
     cli();
@@ -55,6 +73,9 @@ void exception_br()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_ud()
 {
     cli();
@@ -63,6 +84,9 @@ void exception_ud()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_nm()
 {
     cli();
@@ -71,6 +95,9 @@ void exception_nm()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_df()
 {
     cli();
@@ -79,6 +106,9 @@ void exception_df()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_cs()
 {
     cli();
@@ -87,6 +117,9 @@ void exception_cs()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_ts()
 {
     cli();
@@ -95,6 +128,9 @@ void exception_ts()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_np()
 {
     cli();
@@ -103,6 +139,9 @@ void exception_np()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_ss()
 {
     cli();
@@ -111,6 +150,9 @@ void exception_ss()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_gp()
 {
     cli();
@@ -119,6 +161,9 @@ void exception_gp()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_pf()
 {
     cli();
@@ -127,6 +172,9 @@ void exception_pf()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_mf()
 {
     cli();
@@ -135,6 +183,9 @@ void exception_mf()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_ac()
 {
     cli();
@@ -143,6 +194,9 @@ void exception_ac()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_mc()
 {
     cli();
@@ -151,6 +205,9 @@ void exception_mc()
     while(1);
 }
 
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_xf()
 {
     cli();
@@ -159,6 +216,11 @@ void exception_xf()
     while(1);
 }
 
+/* general handler
+input,output: None
+Called when: undefined interrupts happen
+Effect: clear and print info, restore interrupts
+*/
 void general_handler()
 {
     cli();
@@ -167,7 +229,10 @@ void general_handler()
     sti();
 }
 
-/*initialize IDT*/
+/*initialize IDT
+input, output: none
+side effects: idt table is changed
+*/
 void initialize_idt()
 {
     lidt(idt_desc_ptr);
@@ -209,12 +274,13 @@ void initialize_idt()
             idt[i].reserved3 = 0; //use interrupt gate for interrupts
             SET_IDT_ENTRY(idt[i], general_handler_wrapper);
         }
-        else idt[i].reserved3 = 1;
+        else idt[i].reserved3 = 1; //use trap gate for exceptions
         
     }
     SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
     SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_wrapper);  //rtc at irq 8
     
+    /* combined idt entries with exception handler */
 	SET_IDT_ENTRY(idt[0], exception_de);
     SET_IDT_ENTRY(idt[1], exception_db);
     SET_IDT_ENTRY(idt[2], exception_nmi);
