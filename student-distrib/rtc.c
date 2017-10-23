@@ -1,6 +1,7 @@
 #include "i8259.h"
 #include "lib.h"
 #include "rtc.h"
+#include "tests.h"
 #define RTC_REGISTER_PORT 0x70
 #define RTC_DATA_PORT 0x71
 #define NMI_MASK 0x80
@@ -35,9 +36,10 @@ void rtc_init()
 void rtc_interrupt_handler()
 {
     cli();
+    interruption_test('r',0);
     /*check register C*/
-    clear();
-    printf("rtc is runnint");
+    //clear();
+    //printf("rtc is running");
     outb(NMI_MASK+0x0c, RTC_REGISTER_PORT);
     char temp = inb(RTC_DATA_PORT);
     temp = '\n';
