@@ -1,6 +1,9 @@
 #include "x86_desc.h"
+#include "idt.h"
+#include "lib.h"
 #define SYSCALL_INDEX 0x80
 #define INTERRUPT_START_INDEX 32
+#define PIC_OFFSET 0x20
 void exception_de()
 {
     printf("0:Divide by zero!");
@@ -96,6 +99,12 @@ void exception_xf()
     printf("19:SIMD Floating-Point Exception!");
 }
 
+void general_handler()
+{
+    cli();
+    printf("out of the world, there is you interruption.");
+    sti();
+}
 
 void initialize_idt()
 {
@@ -132,8 +141,16 @@ void initialize_idt()
         idt[i].size = 1; //1 for 32bit
         idt[i].reserve1 = 1;
         idt[i].reserve2 = 1;
-        if(i>=INTERRUPT_START_INDEX) idt[i].reserve3 = 0; //use interrupt gate for interrupts
+        idt[i].reserve[4] = 0;//unused bits
+        if(i>=INTERRUPT_START_INDEX)
+        {
+            idt[i].reserve3 = 0; //use interrupt gate for interrupts
+            SET_IDT_ENTRY(idt[i], general_handler);
+        }
         else idt[i].reserve3 = 1;
         
     }
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_assembly);  //keyboard at irq 1
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_assembly);  //rtc at irq 8
+    SET_IDT_ENTRY(idt[0], exception_de);
 }
