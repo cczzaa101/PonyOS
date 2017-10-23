@@ -11,40 +11,40 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
-    OUTB(MASTER_8259_PORT, ICW1);
-    OUTB(SLAVE_8259_PORT, ICW1);
+    outb(ICW1, MASTER_8259_PORT);
+    outb(ICW1, SLAVE_8259_PORT);
     
-    OUTB(MASTER_8259_PORT, ICW2_MASTER);
-    OUTB(SLAVE_8259_PORT, ICW2_SLAVE);
+    outb(ICW2_MASTER, MASTER_8259_PORT);
+    outb(ICW2_SLAVE, SLAVE_8259_PORT);
     
-    OUTB(MASTER_8259_PORT, ICW3_MASTER);
-    OUTB(SLAVE_8259_PORT, ICW3_SLAVE);
+    outb(ICW3_MASTER, MASTER_8259_PORT);
+    outb(ICW3_SLAVE, SLAVE_8259_PORT);
     
-    OUTB(MASTER_8259_PORT, ICW4);
-    OUTB(SLAVE_8259_PORT, ICW4);
+    outb(ICW4, MASTER_8259_PORT);
+    outb(ICW4, SLAVE_8259_PORT);
     
-    OUTB(MASTER_8259_DATA, 0xfb); //enable irq2 for slave
-    OUTB(SLAVE_8259_DATA, 0xff); 
+    outb(0xfb, MASTER_8259_DATA); //enable irq2 for slave
+    outb(0xff, SLAVE_8259_DATA); 
 }
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
     if(irq_num < 8)
     {
-        INB(MASTER_8259_DATA, master_mask);
+        master_mask = inb(MASTER_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (master_mask & testDigit) !=0 )
             master_mask -= testDigit;
-        OUTB(MASTER_8259_DATA, master_mask);
+        outb(master_mask, MASTER_8259_DATA);
     }
     else
     {
         irq_num-=8;
-        INB(SLAVE_8259_DATA, slave_mask);
+        slave_mask = inb(SLAVE_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (slave_mask & testDigit) !=0 )
             slave_mask -= testDigit;
-        OUTB(SLAVE_8259_DATA, slave_mask);
+        outb(slave_mask, SLAVE_8259_DATA);
     }
 }
 
@@ -52,20 +52,20 @@ void enable_irq(uint32_t irq_num) {
 void disable_irq(uint32_t irq_num) {
     if(irq_num < 8)
     {
-        INB(MASTER_8259_DATA, master_mask);
+        master_mask = inb(MASTER_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (master_mask & testDigit) ==0 )
             master_mask += testDigit;
-        OUTB(MASTER_8259_DATA, master_mask);
+        outb(master_mask, MASTER_8259_DATA);
     }
     else
     {
         irq_num-=8;
-        INB(SLAVE_8259_DATA, slave_mask);
+        slave_mask = inb(SLAVE_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (slave_mask & testDigit) ==0 )
             slave_mask += testDigit;
-        OUTB(SLAVE_8259_DATA, slave_mask);
+        outb(slave_mask, SLAVE_8259_DATA);
     }
 }
 
@@ -73,10 +73,10 @@ void disable_irq(uint32_t irq_num) {
 void send_eoi(uint32_t irq_num) {
     if(irq_num < 8)
     {
-        OUTB(MASTER_8259_PORT, EOI);
+        outb(EOI, MASTER_8259_PORT);
     }
     else{
-        OUTB(SLAVE_8259_PORT, EOI);
+        outb(EOI, SLAVE_8259_PORT);
     }
     
 }

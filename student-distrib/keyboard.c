@@ -1,5 +1,6 @@
 #include "lib.h"
 #include "i8259.h"
+#include "keyboard.h"
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_COMMAND_PORT 0x64
