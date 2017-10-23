@@ -1,6 +1,10 @@
 #include "x86_desc.h"
+#include "idt.h"
+#include "lib.h"
+#include "interrupt_handler_wrapper.h"
 #define SYSCALL_INDEX 0x80
 #define INTERRUPT_START_INDEX 32
+#define PIC_OFFSET 0x20
 void exception_de()
 {
     printf("0:Divide by zero!");
@@ -96,6 +100,12 @@ void exception_xf()
     printf("19:SIMD Floating-Point Exception!");
 }
 
+void general_handler()
+{
+    cli();
+    printf("out of the world, there is you interruption.");
+    sti();
+}
 
 void initialize_idt()
 {
@@ -126,14 +136,41 @@ void initialize_idt()
             ldt[i].dpl = 3
         else idt[i].dpl = 0; // exception level for default
         
-        idt[i].present = 1; // 1 for used interrupt, 0 for unused
+     idt[i].present = 1; // 1 for used interrupt, 0 for unused
         idt[i].seg_selector = KERNEL_CS;
         idt[i].reserve0 = 0; //storage segment, always 0
         idt[i].size = 1; //1 for 32bit
         idt[i].reserve1 = 1;
         idt[i].reserve2 = 1;
-        if(i>=INTERRUPT_START_INDEX) idt[i].reserve3 = 0; //use interrupt gate for interrupts
+        idt[i].reserve[4] = 0;//unused bits
+        if(i>=INTERRUPT_START_INDEX)
+        {
+            idt[i].reserve3 = 0; //use interrupt gate for interrupts
+            SET_IDT_ENTRY(idt[i], general_handler);
+        }
         else idt[i].reserve3 = 1;
         
     }
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_wrapper);  //rtc at irq 8
+    
+	SET_IDT_ENTRY(idt[0], exception_de);
+    SET_IDT_ENTRY(idt[1], exception_db);
+    SET_IDT_ENTRY(idt[2], exception_nmi);
+    SET_IDT_ENTRY(idt[3], exception_bp);
+    SET_IDT_ENTRY(idt[4], exception_of);
+    SET_IDT_ENTRY(idt[5], exception_br);
+    SET_IDT_ENTRY(idt[6], exception_ud);
+    SET_IDT_ENTRY(idt[7], exception_nm];
+    SET_IDT_ENTRY(idt[8], exception_df);
+    SET_IDT_ENTRY(idt[9], exception_cs);
+    SET_IDT_ENTRY(idt[10], exception_ts);
+    SET_IDT_ENTRY(idt[11], exception_np);
+    SET_IDT_ENTRY(idt[12], exception_ss);
+    SET_IDT_ENTRY(idt[13], exception_gp);
+    SET_IDT_ENTRY(idt[14], exception_pf);
+    SET_IDT_ENTRY(idt[16], exception_mf);
+    SET_IDT_ENTRY(idt[17], exception_ac);
+    SET_IDT_ENTRY(idt[18], exception_mc);
+    SET_IDT_ENTRY(idt[19], exception_xf);
 }
