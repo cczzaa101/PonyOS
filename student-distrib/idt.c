@@ -7,97 +7,154 @@
 #define PIC_OFFSET 0x20
 void exception_de()
 {
+    cli();
+    clear();
     printf("0:Divide by zero!");
+    while(1);
 }
 
 void exception_db()
 {
+    cli();
+    clear();
     printf("1:Debug exception!");
+    while(1);
 }
 
 void exception_nmi()
 {
+    cli();
+    clear();
     printf("2:Non-maskable interrupt!");
+    while(1);
 }
 
 void exception_bp()
 {
+    cli();
+    clear();
     printf("3:Breakpoint Exception!");
+    while(1);
 }
 
 void exception_of()
 {
+    cli();
+    clear();
     printf("4:overflow!");
+    while(1);
 }
 
 void exception_br()
 {
+    cli();
+    clear();
     printf("5:bound range exceeded!");
+    while(1);
 }
 /////////////////////////////////////
 void exception_ud()
 {
+    cli();
+    clear();
     printf("6:Invalid Opcode!");
+    while(1);
 }
 
 void exception_nm()
 {
+    cli();
+    clear();
     printf("7:Device Not Available!");
+    while(1);
 }
 
 void exception_df()
 {
+    cli();
+    clear();
     printf("8:Double Fault!");
+    while(1);
 }
 
 void exception_cs()
 {
+    cli();
+    clear();
     printf("9:Coprocessor Segment Overrun!");
+    while(1);
 }
 
 void exception_ts()
 {
+    cli();
+    clear();
     printf("10:Invalid TSS!");
+    while(1);
 }
 
 void exception_np()
 {
+    cli();
+    clear();
     printf("11:Segment Not Present!");
+    while(1);
 }
 
 void exception_ss()
 {
+    cli();
+    clear();
     printf("12:Stack Fault!");
+    while(1);
 }
 
 void exception_gp()
 {
+    cli();
+    clear();
     printf("13:General Protection Exception!");
+    while(1);
 }
 
 void exception_pf()
 {
+    cli();
+    clear();
     printf("14:Page-Fault!");
+    while(1);
 }
 
 void exception_mf()
 {
+    cli();
+    clear();
     printf("16:FPU Floating-Point Error!");
+    while(1);
 }
 
 void exception_ac()
 {
+    cli();
+    clear();
     printf("17:Alignment Check Exception!");
+    while(1);
 }
 
 void exception_mc()
 {
+    cli();
+    clear();
     printf("18:Machine-Check Exception!");
+    while(1);
 }
 
 void exception_xf()
 {
+    cli();
+    clear();
     printf("19:SIMD Floating-Point Exception!");
+    while(1);
 }
 
 void general_handler()
