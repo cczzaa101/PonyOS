@@ -2,8 +2,8 @@
 #include "lib.h"
 #include "paging.h"
 /* credit to http://wiki.osdev.org/Setting_Up_Paging */
-#define kernel_dir page_dir[0]
-#define initial_dir page_dir[1]
+#define kernel_dir page_dir[1]
+#define initial_dir page_dir[0]
     
 void page_table_init(int ind)
 {
@@ -72,18 +72,19 @@ void paging_init()
     kernel_dir.present = 1;
     kernel_dir.aligned_address = 1024; //start at 4mb = 1024*4kb
     kernel_dir.size = 1; //4mb page
+    
     //1. page_dir address to cr3
     //2. set paging and protection bits of cr0
     //3. set cr4 to enable 4bits
     __asm__ ( "leal page_dir,%eax;"
-              "movl %eax,%cr3;"
-              
-              "movl %cr0,%eax;"
-              "orl $0x80000001, %eax;"
-              "movl %eax,%cr0;"
+              "movl %eax,%cr3;"            
               
               "movl %cr4, %eax;"
               "orl $0x00000010, %eax;"
               "movl %eax, %cr4;"
+              
+              "movl %cr0,%eax;"
+              "orl $0x80000001, %eax;"
+              "movl %eax,%cr0;"
     );
 }

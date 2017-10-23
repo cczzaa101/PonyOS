@@ -141,11 +141,13 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the PIC */
     i8259_init();
-
+    
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+    
     initialize_idt(); 
     lidt(idt_desc_ptr);
+    paging_init();
     keyboard_init();
     rtc_init();
     /* Enable interrupts */
@@ -154,7 +156,7 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-    paging_init();
+    
     
 #ifdef RUN_TESTS
     /* Run tests */
