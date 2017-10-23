@@ -133,22 +133,22 @@ void initialize_idt()
     {
         //offset set by set_idt
         if(i == SYSCALL_INDEX ) //system call's dpl should be 3
-            ldt[i].dpl = 3
+            idt[i].dpl = 3;
         else idt[i].dpl = 0; // exception level for default
         
      idt[i].present = 1; // 1 for used interrupt, 0 for unused
         idt[i].seg_selector = KERNEL_CS;
-        idt[i].reserve0 = 0; //storage segment, always 0
+        idt[i].reserved0 = 0; //storage segment, always 0
         idt[i].size = 1; //1 for 32bit
-        idt[i].reserve1 = 1;
-        idt[i].reserve2 = 1;
-        idt[i].reserve[4] = 0;//unused bits
+        idt[i].reserved1 = 1;
+        idt[i].reserved2 = 1;
+        idt[i].reserved4 = 0;//unused bits
         if(i>=INTERRUPT_START_INDEX)
         {
-            idt[i].reserve3 = 0; //use interrupt gate for interrupts
+            idt[i].reserved3 = 0; //use interrupt gate for interrupts
             SET_IDT_ENTRY(idt[i], general_handler);
         }
-        else idt[i].reserve3 = 1;
+        else idt[i].reserved3 = 1;
         
     }
     SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
