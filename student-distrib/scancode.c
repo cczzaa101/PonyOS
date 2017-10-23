@@ -112,10 +112,16 @@
 #define SCANCODE_COMMA           51
 #define SCANCODE_POINT           52
 #define mapSize 255
+//255 scancodes in total
 char scancodes_map[mapSize];
 
 
-/*Initialize scancodes map*/
+/*
+Initialize scancodes map
+Input: None
+Output: None
+Effect: Initialize the scancodes map above
+*/
 void init_scancodes_map(void)
 {
   int i;  
@@ -183,6 +189,6 @@ void init_scancodes_map(void)
   scancodes_map[SCANCODE_BACKSPACE] = '\b';
   scancodes_map[SCANCODE_EQUAL]  = '=';
 
-  scancodes_map[SCANCODE_CURSORUP] = 0x3;
-  scancodes_map[SCANCODE_CURSORDOWN] = 0x4;
+  scancodes_map[SCANCODE_CURSORUP] = 0x3; //some special characters for cursorup
+  scancodes_map[SCANCODE_CURSORDOWN] = 0x4; //some special characters for cursordown
 }
