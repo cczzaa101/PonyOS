@@ -59,7 +59,7 @@ void paging_init()
         //first_page_table[i] = (i * 0x1000) | 3; 
         // attributes: supervisor level, read/write, present.
         page_table_init(i);
-        page_table[i].present = 1;
+        if(i!=0) page_table[i].present = 1; //reserved for null pointer
         page_table[i].read_write = 1;        
         page_table[i].page_address = i;
     }
