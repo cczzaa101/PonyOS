@@ -52,6 +52,12 @@ int exception_test_de(){
     return 1;
 }
 
+int exception_test(){
+    TEST_HEADER;
+    asm volatile("int $2");
+    return 1;
+}
+
 void interruption_test(char c, unsigned char arg)
 {
     return;
@@ -109,5 +115,6 @@ void launch_tests(){
     //TEST_OUTPUT("null_test", null_test());
     //TEST_OUTPUT("out_of_bound_test", out_of_bound_test());
     //TEST_OUTPUT("page_test", page_test());
+    //TEST_OUTPUT("exception_test", exception_test());
 	// launch your tests here
 }
