@@ -102,7 +102,7 @@ idt_desc_ptr:
     .long idt
 
 
-    .align  16
+    .align  16 #align by 16bytes
 idt:
 _idt:
     .rept NUM_VEC

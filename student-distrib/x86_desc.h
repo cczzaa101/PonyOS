@@ -165,7 +165,7 @@ typedef union idt_desc_t {
         uint16_t offset_31_16;
     } __attribute__ ((packed));
 } idt_desc_t;
-
+/* struct for page dir entry */
 typedef union page_directory_t {
     uint32_t val;
     struct {
@@ -183,6 +183,7 @@ typedef union page_directory_t {
     } __attribute__ ((packed));
 } page_directory_t;
 
+/* struct for page table entry*/
 typedef union page_table_t {
     uint32_t val;
     struct {
@@ -199,10 +200,10 @@ typedef union page_table_t {
         uint32_t page_address: 20;
     } __attribute__ ((packed));
 } page_table_t;
-
-page_directory_t page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096)));
-
-page_table_t page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096)));
+/* page directory */
+page_directory_t page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))); //aligned by 4k
+/* page table */
+page_table_t page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096))); //aligned by 4k
 
 /* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];
