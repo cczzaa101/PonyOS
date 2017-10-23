@@ -6,8 +6,10 @@
 #define initial_dir page_dir[0]
 
 
-/*Initialize page table
- *Input: ind = contains the physical memory address to which a certain page should be mapped*/   
+/*Initialize page table's entry to all 0
+ *Input: ind = the index of entry
+ *output: none
+ */   
 void page_table_init(int ind)
 {
     #define t(i) page_table[i]
@@ -25,8 +27,10 @@ void page_table_init(int ind)
 }
 
 
-/*Initialize page directory
- *Input: ind = pointer to a Page table*/
+/*Initialize page directory's entry to all 0
+ *Input: ind the index of page directory
+ *output: none
+ */
 void page_directory_init(int ind)
 {
     #define d(i) page_dir[i]
@@ -43,11 +47,14 @@ void page_directory_init(int ind)
     d(ind). aligned_address=0;
 }
 
-/*initialize paging*/
+/*initialize paging
+input, output: None
+effets: initialize kernel and first page directory entry, also the first page table
+*/
 void paging_init()
 {
     int i;
-    /* un used page dir */
+    /* un used page dir starting from index 2 */
     for(i = 2; i< PAGE_DIRECTORY_SIZE; i++)
     {
         // present set to 0
@@ -83,6 +90,8 @@ void paging_init()
     //1. page_dir address to cr3
     //2. set paging and protection bits of cr0
     //3. set cr4 to enable 4bits
+    //0x00000010 for enabling 4mb size
+    //0x80000001 for enabling protected mode and paging mode
     __asm__ ( "leal page_dir,%eax;"
               "movl %eax,%cr3;"            
               
