@@ -77,13 +77,18 @@ void disable_irq(uint32_t irq_num) {
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
+/* End-of-interrupt byte.  This gets OR'd with
+ * the interrupt number and sent out to the PIC
+ * to declare the interrupt finished */
 void send_eoi(uint32_t irq_num) {
     if(irq_num < 8)
     {
-        outb(EOI, MASTER_8259_PORT);
+        outb(EOI|irq_num, MASTER_8259_PORT);
     }
     else{
-        outb(EOI, SLAVE_8259_PORT);
+        irq_num-=8;
+        outb(EOI|irq_num, SLAVE_8259_PORT);
+        outb(EOI|2, MASTER_8259_PORT); //eoi at master's irq2, where slave connects
     }
     
 }
