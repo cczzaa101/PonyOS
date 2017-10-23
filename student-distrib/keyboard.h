@@ -1,5 +1,5 @@
 #include "lib.h"
 #include "i8259.h"
 
-export void keyboard_init();
-export void keyboard_interrupt_handler();
+extern void keyboard_init();
+extern void keyboard_interrupt_handler();

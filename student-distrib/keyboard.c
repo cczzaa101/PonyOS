@@ -19,7 +19,7 @@ void keyboard_interrupt_handler()
     while( (inb(KEYBOARD_STATUS_PORT)&0x1)>0 ) //the buffer is still full
     {
         keyboard_buffer = inb(KEYBOARD_DATA_PORT);
-        printf(keyboard_buffer);
+        printf("%c",keyboard_buffer);
     }
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts

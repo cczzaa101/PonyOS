@@ -1,4 +1,6 @@
-#include "idt.h"
+#ifndef IDT
+#define IDT
 #include "lib.h"
 #include "interrupt_handler_wrapper.h"
-export void initialize_idt();
+extern void initialize_idt();
+#endif

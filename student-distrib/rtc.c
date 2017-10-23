@@ -39,6 +39,7 @@ void rtc_interrupt_handler()
     
     outb(NMI_MASK+0x0c, RTC_REGISTER_PORT);
     char temp = inb(RTC_DATA_PORT);
+    temp = '\n';
     send_eoi(RTC_IRQ_NUM);
     
     sti();
