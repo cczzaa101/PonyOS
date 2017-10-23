@@ -22,6 +22,10 @@
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC     256
 
+/* size of page table and page dir */
+#define PAGE_TABLE_SIZE 1024
+#define PAGE_DIRECTORY_SIZE 1024
+
 #ifndef ASM
 
 /* This structure is used to load descriptor base registers
@@ -161,6 +165,44 @@ typedef union idt_desc_t {
         uint16_t offset_31_16;
     } __attribute__ ((packed));
 } idt_desc_t;
+
+typedef union page_directory_t {
+    uint32_t val;
+    struct {
+        uint32_t present     :1;
+        uint32_t read_write  :1;
+        uint16_t user_supervisor: 1;
+        uint32_t write_through  : 1;
+        uint32_t cache_disabled : 1;
+        uint32_t accessed    : 1;
+        uint32_t reserved    : 1;
+        uint32_t size        : 1;
+        uint32_t zero        : 1;
+        uint32_t avail       : 3;
+        uint32_t aligned_address: 20;
+    } __attribute__ ((packed));
+} page_directory_t;
+
+typedef union page_table_t {
+    uint32_t val;
+    struct {
+        uint32_t present     :1;
+        uint32_t read_write  :1;
+        uint16_t user_supervisor: 1;
+        uint32_t write_through  : 1;
+        uint32_t cache_disabled : 1;
+        uint32_t accessed    : 1;
+        uint32_t dirty       : 1;
+        uint32_t zero        : 1;
+        uint32_t global      : 1;
+        uint32_t avail       : 3;
+        uint32_t page_address: 20;
+    } __attribute__ ((packed));
+} page_table_t;
+
+page_directory_t page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096)));
+
+page_table_t page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096)));
 
 /* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];
