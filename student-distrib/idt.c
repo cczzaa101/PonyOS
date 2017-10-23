@@ -30,6 +30,72 @@ void exception_br()
 {
     printf("5:bound range exceeded!");
 }
+/////////////////////////////////////
+void exception_ud()
+{
+    printf("6:Invalid Opcode!");
+}
+
+void exception_nm()
+{
+    printf("7:Device Not Available!");
+}
+
+void exception_df()
+{
+    printf("8:Double Fault!");
+}
+
+void exception_cs()
+{
+    printf("9:Coprocessor Segment Overrun!");
+}
+
+void exception_ts()
+{
+    printf("10:Invalid TSS!");
+}
+
+void exception_np()
+{
+    printf("11:Segment Not Present!");
+}
+
+void exception_ss()
+{
+    printf("12:Stack Fault!");
+}
+
+void exception_gp()
+{
+    printf("13:General Protection Exception!");
+}
+
+void exception_pf()
+{
+    printf("14:Page-Fault!");
+}
+
+void exception_mf()
+{
+    printf("16:FPU Floating-Point Error!");
+}
+
+void exception_ac()
+{
+    printf("17:Alignment Check Exception!");
+}
+
+void exception_mc()
+{
+    printf("18:Machine-Check Exception!");
+}
+
+void exception_xf()
+{
+    printf("19:SIMD Floating-Point Exception!");
+}
+
 
 void initialize_idt()
 {
