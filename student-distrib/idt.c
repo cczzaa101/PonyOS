@@ -282,10 +282,10 @@ void initialize_idt()
         idt[i].reserved4 = 0;//unused bits
         if(i>=0x20)
         {
-            idt[i].reserved3 = 0; //use interrupt gate for interrupts
-            SET_IDT_ENTRY(idt[i], general_handler_wrapper);
+            idt[i].reserved3 = 0; //use interrupt gate for interrupts       
         }
         else idt[i].reserved3 = 1; //use trap gate for exceptions
+        SET_IDT_ENTRY(idt[i], general_handler_wrapper);
         
     }
     SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1

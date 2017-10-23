@@ -35,7 +35,7 @@ int idt_test(){
 
 	int i;
 	int result = PASS;
-	for (i = 0; i < 20; ++i){ //test 20 exceptions
+	for (i = 0; i < NUM_VEC; ++i){ //test all exceptions
         
 		if ((idt[i].offset_15_00 == NULL) && 
 			(idt[i].offset_31_16 == NULL)){
@@ -43,7 +43,7 @@ int idt_test(){
 			result = FAIL;
 		}
 	}
-
+/*
     if ((idt[KB_IDT].offset_15_00 == NULL) && 
 			(idt[KB_IDT].offset_31_16 == NULL)){
 			assertion_failure();
@@ -55,7 +55,7 @@ int idt_test(){
 			assertion_failure();
 			result = FAIL;
 		}    
-        
+*/        
 	return result;
 }
 
