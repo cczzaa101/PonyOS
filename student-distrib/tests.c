@@ -45,7 +45,7 @@ int idt_test(){
 	return result;
 }
 
-int exception_test(){
+int exception_test_de(){
     TEST_HEADER;
     int i = 5, p = 2-2;
     i = i/p;
@@ -73,8 +73,24 @@ void interruption_test(char c, unsigned char arg)
 int null_test()
 {
     TEST_HEADER;
-    int *p = 0;
+    int *p = (int*)0;
     *p = *p +1;
+    return 1;
+}
+
+int out_of_bound_test()
+{
+    TEST_HEADER;
+    int *p = (int*)0x5000020; //arbitrary location 50MB+20bytes
+    printf("content at %d is %d",p,*p);
+    return 1;
+}
+
+int page_test()
+{
+    TEST_HEADER;
+    int *p = (int*)0x500020; //arbitrary location 5MB+20bytes
+    printf("content at %d is %d\n",p,*p);
     return 1;
 }
 // add more tests here
@@ -89,7 +105,9 @@ int null_test()
 void launch_tests(){
     clear();
 	//TEST_OUTPUT("idt_test", idt_test());
-    //TEST_OUTPUT("exception_test", exception_test());
+    //TEST_OUTPUT("exception_test_de", exception_test_de());
     //TEST_OUTPUT("null_test", null_test());
+    //TEST_OUTPUT("out_of_bound_test", out_of_bound_test());
+    //TEST_OUTPUT("page_test", page_test());
 	// launch your tests here
 }
