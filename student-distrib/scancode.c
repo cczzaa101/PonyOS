@@ -114,6 +114,8 @@
 #define mapSize 255
 char scancodes_map[mapSize];
 
+
+/*Initialize scancodes map*/
 void init_scancodes_map(void)
 {
   int i;  

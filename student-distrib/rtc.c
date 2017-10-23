@@ -7,6 +7,9 @@
 #define NMI_MASK 0x80
 #define RTC_IRQ_NUM 0x08
 /* credit to http://wiki.osdev.org/RTC */
+
+
+/*Initialize RTC*/
 void rtc_init()
 {
     unsigned rate = 0x06; //32768>>5 = 1024
@@ -33,6 +36,7 @@ void rtc_init()
     sti();
 }
 
+/*RTC interrupt handler */
 void rtc_interrupt_handler()
 {
     cli();

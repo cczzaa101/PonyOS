@@ -30,7 +30,9 @@ void i8259_init(void) {
     slave_mask = inb(SLAVE_8259_DATA);
 }
 
-/* Enable (unmask) the specified IRQ */
+/* Enable (unmask) the specified IRQ; 
+ * Input: uint32_t irq_num = the specified IRQ number;*/
+
 void enable_irq(uint32_t irq_num) {
     if(irq_num < 8)
     {
@@ -53,7 +55,8 @@ void enable_irq(uint32_t irq_num) {
     slave_mask = inb(SLAVE_8259_DATA);
 }
 
-/* Disable (mask) the specified IRQ */
+/* Disable (mask) the specified IRQ 
+ * Input: uint32_t irq_num = the specified IRQ number;*/
 void disable_irq(uint32_t irq_num) {
     if(irq_num < 8)
     {
@@ -79,7 +82,8 @@ void disable_irq(uint32_t irq_num) {
 /* Send end-of-interrupt signal for the specified IRQ */
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
- * to declare the interrupt finished */
+ * to declare the interrupt finished 
+ * Input: uint32_t irq_num = the specified IRQ number;*/
 void send_eoi(uint32_t irq_num) {
     if(irq_num < 8)
     {

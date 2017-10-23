@@ -19,7 +19,9 @@
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
 /* Check if MAGIC is valid and print the Multiboot information structure
-   pointed by ADDR. */
+   pointed by ADDR.
+ * Input: unsigned long magic = MAGIC
+ *        unsigned long addr  = ADDR2 */
 void entry(unsigned long magic, unsigned long addr) {
 
     multiboot_info_t *mbi;

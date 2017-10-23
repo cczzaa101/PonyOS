@@ -4,7 +4,10 @@
 /* credit to http://wiki.osdev.org/Setting_Up_Paging */
 #define kernel_dir page_dir[1]
 #define initial_dir page_dir[0]
-    
+
+
+/*Initialize page table
+ *Input: ind = contains the physical memory address to which a certain page should be mapped*/   
 void page_table_init(int ind)
 {
     #define t(i) page_table[i]
@@ -21,6 +24,9 @@ void page_table_init(int ind)
     t(ind). page_address=0;
 }
 
+
+/*Initialize page directory
+ *Input: ind = pointer to a Page table*/
 void page_directory_init(int ind)
 {
     #define d(i) page_dir[i]
@@ -37,6 +43,7 @@ void page_directory_init(int ind)
     d(ind). aligned_address=0;
 }
 
+/*initialize paging*/
 void paging_init()
 {
     int i;

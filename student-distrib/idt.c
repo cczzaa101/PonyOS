@@ -5,6 +5,8 @@
 #define SYSCALL_INDEX 0x80
 #define INTERRUPT_START_INDEX 32
 #define PIC_OFFSET 0x20
+
+/*print exception information*/ 
 void exception_de()
 {
     cli();
@@ -52,7 +54,7 @@ void exception_br()
     printf("5:bound range exceeded!");
     while(1);
 }
-/////////////////////////////////////
+
 void exception_ud()
 {
     cli();
@@ -165,6 +167,7 @@ void general_handler()
     sti();
 }
 
+/*initialize IDT*/
 void initialize_idt()
 {
     lidt(idt_desc_ptr);
