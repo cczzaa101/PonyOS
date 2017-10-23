@@ -161,7 +161,7 @@ void initialize_idt()
     SET_IDT_ENTRY(idt[4], exception_of);
     SET_IDT_ENTRY(idt[5], exception_br);
     SET_IDT_ENTRY(idt[6], exception_ud);
-    SET_IDT_ENTRY(idt[7], exception_nm];
+    SET_IDT_ENTRY(idt[7], exception_nm);
     SET_IDT_ENTRY(idt[8], exception_df);
     SET_IDT_ENTRY(idt[9], exception_cs);
     SET_IDT_ENTRY(idt[10], exception_ts);
