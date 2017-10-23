@@ -1,6 +1,7 @@
 #include "x86_desc.h"
 #include "idt.h"
 #include "lib.h"
+#include "interrupt_handler_wrapper.h"
 #define SYSCALL_INDEX 0x80
 #define INTERRUPT_START_INDEX 32
 #define PIC_OFFSET 0x20
@@ -150,7 +151,7 @@ void initialize_idt()
         else idt[i].reserve3 = 1;
         
     }
-    SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_assembly);  //keyboard at irq 1
-    SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_assembly);  //rtc at irq 8
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_wrapper);  //rtc at irq 8
     SET_IDT_ENTRY(idt[0], exception_de);
 }
