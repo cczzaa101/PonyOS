@@ -14,17 +14,20 @@ void i8259_init(void) {
     outb(ICW1, MASTER_8259_PORT);
     outb(ICW1, SLAVE_8259_PORT);
     
-    outb(ICW2_MASTER, MASTER_8259_PORT);
-    outb(ICW2_SLAVE, SLAVE_8259_PORT);
+    outb(ICW2_MASTER, MASTER_8259_DATA);
+    outb(ICW2_SLAVE, SLAVE_8259_DATA);
     
-    outb(ICW3_MASTER, MASTER_8259_PORT);
-    outb(ICW3_SLAVE, SLAVE_8259_PORT);
+    outb(ICW3_MASTER, MASTER_8259_DATA);
+    outb(ICW3_SLAVE, SLAVE_8259_DATA);
     
-    outb(ICW4, MASTER_8259_PORT);
-    outb(ICW4, SLAVE_8259_PORT);
+    outb(ICW4, MASTER_8259_DATA);
+    outb(ICW4, SLAVE_8259_DATA);
     
     outb(0xfb, MASTER_8259_DATA); //enable irq2 for slave
     outb(0xff, SLAVE_8259_DATA); 
+    
+    master_mask = inb(MASTER_8259_DATA);
+    slave_mask = inb(SLAVE_8259_DATA);
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -46,6 +49,8 @@ void enable_irq(uint32_t irq_num) {
             slave_mask -= testDigit;
         outb(slave_mask, SLAVE_8259_DATA);
     }
+    master_mask = inb(MASTER_8259_DATA);
+    slave_mask = inb(SLAVE_8259_DATA);
 }
 
 /* Disable (mask) the specified IRQ */
@@ -67,6 +72,8 @@ void disable_irq(uint32_t irq_num) {
             slave_mask += testDigit;
         outb(slave_mask, SLAVE_8259_DATA);
     }
+    master_mask = inb(MASTER_8259_DATA);
+    slave_mask = inb(SLAVE_8259_DATA);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
