@@ -10,6 +10,7 @@ uint8_t master_mask; /* IRQs 0-7  */
 uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
+/* input, output: none */
 void i8259_init(void) {
     outb(ICW1, MASTER_8259_PORT);
     outb(ICW1, SLAVE_8259_PORT);
@@ -23,8 +24,8 @@ void i8259_init(void) {
     outb(ICW4, MASTER_8259_DATA);
     outb(ICW4, SLAVE_8259_DATA);
     
-    outb(0xfb, MASTER_8259_DATA); //enable irq2 for slave
-    outb(0xff, SLAVE_8259_DATA); 
+    outb(0xfb, MASTER_8259_DATA); //set mask to 0xfb(11111011)enable irq2 for slave
+    outb(0xff, SLAVE_8259_DATA);  //mask slave pic
     
     master_mask = inb(MASTER_8259_DATA);
     slave_mask = inb(SLAVE_8259_DATA);
@@ -34,7 +35,7 @@ void i8259_init(void) {
  * Input: uint32_t irq_num = the specified IRQ number;*/
 
 void enable_irq(uint32_t irq_num) {
-    if(irq_num < 8)
+    if(irq_num < 8) //0-7 for master
     {
         master_mask = inb(MASTER_8259_DATA);
         int testDigit = (1<<irq_num);
@@ -44,7 +45,7 @@ void enable_irq(uint32_t irq_num) {
     }
     else
     {
-        irq_num-=8;
+        irq_num-=8; //8-15 for slave, subtract 8
         slave_mask = inb(SLAVE_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (slave_mask & testDigit) !=0 )
@@ -58,7 +59,7 @@ void enable_irq(uint32_t irq_num) {
 /* Disable (mask) the specified IRQ 
  * Input: uint32_t irq_num = the specified IRQ number;*/
 void disable_irq(uint32_t irq_num) {
-    if(irq_num < 8)
+    if(irq_num < 8) //0-7 for master
     {
         master_mask = inb(MASTER_8259_DATA);
         int testDigit = (1<<irq_num);
@@ -68,7 +69,7 @@ void disable_irq(uint32_t irq_num) {
     }
     else
     {
-        irq_num-=8;
+        irq_num-=8;//8-15 for slave, subtract 8
         slave_mask = inb(SLAVE_8259_DATA);
         int testDigit = (1<<irq_num);
         if( (slave_mask & testDigit) ==0 )
@@ -85,12 +86,12 @@ void disable_irq(uint32_t irq_num) {
  * to declare the interrupt finished 
  * Input: uint32_t irq_num = the specified IRQ number;*/
 void send_eoi(uint32_t irq_num) {
-    if(irq_num < 8)
+    if(irq_num < 8) //0-7 for master
     {
         outb(EOI|irq_num, MASTER_8259_PORT);
     }
     else{
-        irq_num-=8;
+        irq_num-=8; //8-15 for slave, subtract 8
         outb(EOI|irq_num, SLAVE_8259_PORT);
         outb(EOI|2, MASTER_8259_PORT); //eoi at master's irq2, where slave connects
     }
