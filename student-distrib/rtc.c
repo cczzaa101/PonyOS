@@ -9,10 +9,13 @@
 /* credit to http://wiki.osdev.org/RTC */
 
 
-/*Initialize RTC*/
+/*Initialize RTC
+input,output:none
+Effects: enable rtc pulsing at irq 8
+*/
 void rtc_init()
 {
-    unsigned rate = 0x06; //32768>>5 = 1024
+    unsigned rate = 0x06; //32768>>(6-1) = 1024HZ
     cli(); //When programming the RTC, it is important that the NMI (non-maskable-interrupt) and other interrupts are disabled.
     
     outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
@@ -28,15 +31,18 @@ void rtc_init()
     outb(NMI_MASK + 0x0B, RTC_REGISTER_PORT); //select port B
     prev = inb(RTC_DATA_PORT);
     outb(NMI_MASK + 0x0B, RTC_REGISTER_PORT); //select port B
-    outb(prev|0x40, RTC_DATA_PORT);
+    outb(prev|0x40, RTC_DATA_PORT);//use 0x40 to turn on at irq8
     
     
     /*unmask irq*/
-    enable_irq(8);
+    enable_irq(RTC_IRQ_NUM);
     sti();
 }
 
-/*RTC interrupt handler */
+/*RTC interrupt handler 
+input,output:none
+side effects: calling interruption_test
+*/
 void rtc_interrupt_handler()
 {
     cli();
@@ -44,8 +50,8 @@ void rtc_interrupt_handler()
     /*check register C*/
     //clear();
     //printf("rtc is running");
-    outb(NMI_MASK+0x0c, RTC_REGISTER_PORT);
-    char temp = inb(RTC_DATA_PORT);
+    outb(NMI_MASK+0x0c, RTC_REGISTER_PORT); //select C register
+    char temp = inb(RTC_DATA_PORT); //meaningless steps
     temp = '\n';
     send_eoi(RTC_IRQ_NUM);
     
