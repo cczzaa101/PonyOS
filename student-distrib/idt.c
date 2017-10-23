@@ -175,6 +175,17 @@ void exception_pf()
 /* exception handler
 input,output:None
 Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
+void exception_rs()
+{
+    cli();
+    clear();
+    printf("15:reserved, test error!");
+    while(1);
+}
+
+/* exception handler
+input,output:None
+Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
 void exception_mf()
 {
     cli();
@@ -296,6 +307,7 @@ void initialize_idt()
     SET_IDT_ENTRY(idt[12], exception_ss);
     SET_IDT_ENTRY(idt[13], exception_gp);
     SET_IDT_ENTRY(idt[14], exception_pf);
+    SET_IDT_ENTRY(idt[15], exception_rs);
     SET_IDT_ENTRY(idt[16], exception_mf);
     SET_IDT_ENTRY(idt[17], exception_ac);
     SET_IDT_ENTRY(idt[18], exception_mc);
