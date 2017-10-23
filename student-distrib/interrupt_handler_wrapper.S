@@ -6,7 +6,12 @@
 .global general_handler_wrapper
 .align 4
 
-    
+/*
+assembly wrapper for keyboard handler
+input: None
+output: None
+
+*/    
 keyboard_handler_wrapper:
     pusha
     cld
@@ -14,6 +19,12 @@ keyboard_handler_wrapper:
     popa
     iret
 
+/*
+assembly wrapper for rtc handler
+input: None
+output: None
+effect: called actual handler and do iret, restore registers.
+*/    
 rtc_handler_wrapper:
     pusha
     cld
@@ -21,6 +32,12 @@ rtc_handler_wrapper:
     popa
     iret
 
+/*
+assembly wrapper for rtc handler
+input: None
+output: None
+effect: called actual handler and do iret, restore registers.
+*/  
 general_handler_wrapper:
     pusha
     cld
