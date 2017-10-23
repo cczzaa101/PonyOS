@@ -1,5 +1,6 @@
 #include "i8259.h"
 #include "lib.h"
+#include "rtc.h"
 #define RTC_REGISTER_PORT 0x70
 #define RTC_DATA_PORT 0x71
 #define NMI_MASK 0x80
