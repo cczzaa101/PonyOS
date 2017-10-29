@@ -8,7 +8,7 @@
 #define RTC_IRQ_NUM 0x08
 /* credit to http://wiki.osdev.org/RTC */
 
-
+static int next_interrupt = 0;
 /*Initialize RTC
 input,output:none
 Effects: enable rtc pulsing at irq 8
@@ -16,6 +16,7 @@ Effects: enable rtc pulsing at irq 8
 void rtc_init()
 {
     unsigned rate = 0x06; //32768>>(6-1) = 1024HZ
+    next_interrupt = 0;
     cli(); //When programming the RTC, it is important that the NMI (non-maskable-interrupt) and other interrupts are disabled.
     
     outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
@@ -46,6 +47,7 @@ side effects: calling interruption_test
 void rtc_interrupt_handler()
 {
     cli();
+    next_interrupt = 1;
     interruption_test('r',0);
     /*check register C*/
     //clear();
@@ -56,4 +58,72 @@ void rtc_interrupt_handler()
     send_eoi(RTC_IRQ_NUM);
     
     sti();
+}
+
+/*RTC open function
+input: none
+output: 0
+side effects: set RTC freq to 2HZ
+*/
+int_32_t rtc_open()
+{
+    cli();
+    set_freq(2);
+    sti();
+    return 0;
+}
+
+/*RTC read function
+input: none
+output: 0
+side effects: should block until the next interrupt, then return 0.
+*/
+int_32_t rtc_read()
+{
+    while(next_interrupt == 0 ) {}
+    next_interrupt = 0;
+    return 0;
+}
+
+/*RTC write function
+input: 
+output: 0
+side effects: should block until the next interrupt, then return 0.
+*/
+int_32_t rtc_write(int * freq, int size)
+{
+    /*check freq validity*/
+    cli();
+    if(freq == NULL) return -1;
+    if(size!= sizeof(int)) return -1;
+    int temp = *freq, flag = 0;
+    if(temp<=0) return -1;
+    if(temp>1024) temp = 1024;
+    
+    while(temp !=0)
+    {
+        if( ((temp&1)!=0)  && ( temp!=1 ) flag = 1;
+        temp>>=1;
+    }
+    if(flag==1) return -1; // freq is not power of 2
+    
+    set_freq(*freq);
+    sti();
+}
+
+/*helper function for setting frequency*/
+void set_freq(int freq)
+{
+    /*set rate*/
+    int pwr = -1,rate;
+    while(freq > 0 )
+    {
+        freq>>=1;
+        pwr++;
+    }
+    rate = 15 - pwr + 1; // 15 is 2^15 = 32768
+    outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
+    unsigned char prev =  inb(RTC_DATA_PORT);
+    outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
+    outb((prev&0xF0)|rate, RTC_DATA_PORT); //&0xf0 to clear lowest 4bits, | rate to reset the rate
 }

@@ -5,3 +5,5 @@
 extern void rtc_init();
 /* handle rtc interrupts */
 extern void rtc_interrupt_handler();
+/* open function for rtc */
+int_32_t rtc_open();
