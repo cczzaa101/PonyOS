@@ -73,6 +73,17 @@ int_32_t rtc_open()
     return 0;
 }
 
+/*RTC close function
+input: none
+output: 0
+side effects: None
+*/
+int_32_t rtc_close()
+{
+    return 0;
+}
+
+
 /*RTC read function
 input: none
 output: 0
