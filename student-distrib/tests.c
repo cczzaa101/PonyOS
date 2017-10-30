@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "scancode.h"
+#include "keyboard.h"
 #define PASS 1
 #define FAIL 0
 #define KB_IDT 0x21
@@ -105,12 +106,16 @@ void interruption_test(char c, unsigned char arg)
     return;
     if(c=='k') //keyboard test
     {
+        printf("                      Kbtest: pressed %c   \n", character_convert(arg) );
+        /*
         if(scancodes_map[arg]!=0)
         {
             clear();
             printf("                      Kbtest: pressed %c   \n", scancodes_map[(int)arg] );
         }
+        */
     }
+    
     if(c=='r') //rtc test
     {
         printf("rtcCount: %d\n", ++cnt );
@@ -171,6 +176,19 @@ int page_test()
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+void terminal_read_test()
+{
+    char temp[129];
+    while(1)
+    {
+        int res = terminal_read(temp);
+        if(res==0)
+        {
+            printf("%s", temp);
+        }
+    }
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -179,6 +197,8 @@ int page_test()
 /* Test suite entry point */
 void launch_tests(){
     clear();
+    
+    
 	//TEST_OUTPUT("idt_test", idt_test());
     //TEST_OUTPUT("exception_test_de", exception_test_de());
     //TEST_OUTPUT("null_test", null_test());

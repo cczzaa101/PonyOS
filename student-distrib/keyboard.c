@@ -127,7 +127,7 @@ void keyboard_interrupt_handler()
     {
         placeholder = inb(KEYBOARD_DATA_PORT);
         scancode_processing(placeholder);
-        //interruption_test('k', placeholder);
+        interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
     send_eoi(KEYBOARD_IRQ_NUM);
