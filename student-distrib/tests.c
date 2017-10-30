@@ -199,7 +199,7 @@ int print_list_of_files_test(){
 	TEST_HEADER;
 	char buf[32];
 	while(dir_read(buf)==0){
-		printf("%s\n",buff);
+		printf("%s\n",buf);
 	}
 	
 	return 1;
