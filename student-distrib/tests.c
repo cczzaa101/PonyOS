@@ -12,12 +12,14 @@
 #define MAX_NAME_SIZE 32
 #define MAX_CONTENT_SIZE 128
 #define MAX_KEY_IND 128
+#define INT_SIZE 4
+#define RTC_BASE_COUNT 5
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
 #define TEST_OUTPUT(name, result)	\
 	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
-static int cnt = 0;
+//static int cnt = 0;
 static inline void assertion_failure(){
 	/* Use exception #15 for assertions, otherwise
 	   reserved by Intel */
@@ -108,7 +110,7 @@ int exception_test(){
  */
 void interruption_test(char c, unsigned char arg)
 {
-    return;
+    //return;
     if(c=='k') //keyboard test
     {
         printf("                      Kbtest: pressed %c   \n", character_convert(arg) );
@@ -121,10 +123,11 @@ void interruption_test(char c, unsigned char arg)
         */
     }
     
+    /*
     if(c=='r') //rtc test
     {
         printf("rtcCount: %d\n", ++cnt );
-    }
+    }*/
     return;
 }
 
@@ -183,12 +186,13 @@ int page_test()
 /* Checkpoint 2 tests */
 
 int unknown_scancodes_test(){
-	u_int8_t c = MAX_KEY_IND+1;
-	
+	//uint8_t c = MAX_KEY_IND+1;
+	return 1;
 }
 
 
 int read_input_test(){
+    /*
 	TEST_HEADER;
 	char str[150];
 	strcpy(str,kb_read());
@@ -196,16 +200,17 @@ int read_input_test(){
 		return FAIL;
 	}
 	puts(str);
-	return PASS;
+    */
+	return 1;
 }
 
 // The length of strshort is within the range of the buffer while the strlong is not
 int write_strings_test(){
 	TEST_HEADER;
 	char strshort[]="Sample Test";  
-	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n if u c the char its wrong";
-	t_write(strshort);
-	t_write(strlong);
+	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n this part should be trunct!";
+	terminal_write(strshort, strlen(strshort) );
+	terminal_write(strlong, strlen(strlong) );
 	return 1;
 }
 
@@ -223,8 +228,8 @@ int print_list_of_files_test(){
 
 int print_contents_test(){
 	TEST_HEADER;
-	char buf[MAX_CONTENT_SIZE]; 
-	char fname[] = "cat";
+	unsigned char buf[MAX_CONTENT_SIZE]; 
+	unsigned char fname[] = "cat";
 	filesys_read_by_name(fname,buf,MAX_CONTENT_SIZE);
 	printf("%s",buf);
 	return 1;
@@ -233,71 +238,80 @@ int print_contents_test(){
 int rtc_test(){
 	TEST_HEADER;
 	int i;
-	int *freq; 
+	int freq; 
 	
-	clear();
-	*freq =1;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	//clear();
+	freq =2;
+	rtc_write(&freq, INT_SIZE);
+    
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq =16;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq =16;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq = 128;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq = 128;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq = 512;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq = 512;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq = 1024;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq = 1024;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq = 2048;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq = 2048;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
 	clear();
-	*freq = 666;
-	rtc_write(freq, INT_SIZE);
-	for (i=0;i<500;i++){
+	freq = 666;
+	rtc_write(&freq, INT_SIZE);
+	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
-			putc('1');
+			putc_scroll('1');
+            i++;
 		}		
 	}
 	
+    return 1;
 }
 
 
@@ -310,7 +324,7 @@ int rtc_test(){
 void launch_tests(){
     clear();
     
-    terminal_read_test();
+    //terminal_read_test();
 	//TEST_OUTPUT("idt_test", idt_test());
     //TEST_OUTPUT("exception_test_de", exception_test_de());
     //TEST_OUTPUT("null_test", null_test());
@@ -323,7 +337,7 @@ void launch_tests(){
     //TEST_OUTPUT("write_strings_test", write_strings_test());
     //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
-    //TEST_OUTPUT("rtc_test", rtc_test());
+    TEST_OUTPUT("rtc_test", rtc_test());
     
 	// launch your tests here
 }

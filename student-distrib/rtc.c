@@ -108,7 +108,7 @@ side effects: should block until the next interrupt, then return 0.
 */
 int32_t rtc_read()
 {
-    while(next_interrupt == 0 ) {}
+    if(next_interrupt == 0 ) return -1;
     next_interrupt = 0;
     return 0;
 }
@@ -122,10 +122,10 @@ int32_t rtc_write(int * freq, int size)
 {
     /*check freq validity*/
     cli();
-    if(freq == NULL) return -1;
-    if(size!= sizeof(int)) return -1;
+    if(freq == NULL) { sti(); return -1; }
+    if(size!= sizeof(int)) { sti(); return -1; }
     int temp = *freq, flag = 0;
-    if(temp<=0) return -1;
+    if(temp<=0) { sti(); return -1; }
     if(temp>1024) temp = 1024;
     
     while(temp !=0)
@@ -133,10 +133,10 @@ int32_t rtc_write(int * freq, int size)
         if( ((temp&1)!=0)  && ( temp!=1 ) ) flag = 1;
         temp>>=1;
     }
-    if(flag==1) return -1; // freq is not power of 2
+    if(flag==1) { sti(); return -1; } // freq is not power of 2
     
     set_freq(*freq);
-    return 0;
     sti();
+    return 0;
 }
 
