@@ -13,6 +13,8 @@ inode_t * inode_table;
 #define inodes_offset 4
 #define data_blocks_offset 8
 #define data_block_size (4*1024)
+#define data_block(i) (data_block_start + data_block_size*i)
+#define max_name_length 32
 void filesys_init()
 {
     int32_t * temp = (int32_t *) (file_start + dir_entry_offset);
@@ -32,11 +34,15 @@ void filesys_init()
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t *dentry)
 {
-    int i = 1, cmpRes;  
+    int i = 1,l1,l2, cmpRes;  
     for(i = 0; i<num_dir_entry; i++)
     {
-        if(strlen( (int8_t *)fname ) != strlen(dir_table[i].fileName)) continue;
-        cmpRes = strncmp( (int8_t *)fname, dir_table[i].fileName , strlen( (int8_t *)fname) );
+        l1 = strlen( (int8_t *)fname );
+        l2 = strlen(dir_table[i].fileName);
+        if(l1>max_name_length) l1 = max_name_length;
+        if(l2>max_name_length) l2 = max_name_length;
+        if( l1!=l2 ) continue;
+        cmpRes = strncmp( (int8_t *)fname, dir_table[i].fileName , l1 );
         if(cmpRes == 0)
         {
             dentry->inode = dir_table[i].inode;
@@ -83,7 +89,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             
             memcpy( 
                         current_buf_addr, 
-                        (uint8_t*)(inode_table[inode].data[i] + first_block_offset), 
+                        (uint8_t*)( data_block( inode_table[inode].data[i] ) + first_block_offset), 
                         copied_length
                       );
             
@@ -100,7 +106,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             
             memcpy( 
                         current_buf_addr, 
-                        (uint8_t*)(inode_table[inode].data[i]), 
+                        (uint8_t*)( data_block( inode_table[inode].data[i] ) ), 
                         copied_length
                       );
             remaining_length -= copied_length;
@@ -116,6 +122,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 int32_t filesys_read(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
     return read_data(inode, offset, buf, count);
+}
+
+int32_t filesys_read_by_name(uint8_t* fname, uint8_t* buf, uint32_t count)
+{
+    dentry_t f;
+    int res = read_dentry_by_name(fname, &f);
+    if(res == -1) return -1;
+    return read_data(f.inode, 0, buf, count);
 }
 
 int32_t filesys_write()
@@ -152,9 +166,11 @@ int32_t dir_write()
 
 int32_t dir_read(char * buf)
 {
+    if(current_dir_read_index >= num_dir_entry ) return -1;
     dentry_t temp;
     int res = read_dentry_by_index(current_dir_read_index,&temp);
     if(res == -1) return res;
     memcpy( buf, temp.fileName, sizeof(temp.fileName) );
+    current_dir_read_index++;
     return 0;
 }

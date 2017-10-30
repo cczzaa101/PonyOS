@@ -4,8 +4,8 @@
 /* struct for file directory entry*/
 typedef struct  {
     char fileName[fileNameLength];
-    int8_t fileType;
-    int8_t inode;
+    int32_t fileType;
+    int32_t inode;
     char reserved[reserved_dentry_length];
 } dentry_t;
 
@@ -20,6 +20,7 @@ int32_t filesys_read(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t cou
 int32_t filesys_write();
 int32_t filesys_open();
 int32_t filesys_close();
+int32_t filesys_read_by_name(uint8_t* fname, uint8_t* buf, uint32_t count);
 int32_t dir_read(char * buf);
 int32_t dir_write();
 int32_t dir_open();
