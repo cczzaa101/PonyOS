@@ -209,7 +209,6 @@ int print_list_of_files_test(){
 
 int print_contents_test(){
 	TEST_HEADER;
-	dentry_t *d;
 	char buf[128]; 
 	char fname[] = "cat";
 	filesys_read_by_name(fname,buf,128);
