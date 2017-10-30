@@ -40,7 +40,7 @@ void keyboard_init()
     terminal_read_ready = 0;
     cap_status = 0;
 }
-
+/* change by shift */
 unsigned char character_convert(unsigned char c)
 {
     if( scancodes_map[c] ==0 ) return 0;
@@ -51,7 +51,7 @@ unsigned char character_convert(unsigned char c)
         res = special_convert_map[res];
     return res;
 }
-
+/* processing scancode, change keyboard buffer*/
 void scancode_processing(unsigned char c)
 {
     int i;
@@ -134,12 +134,12 @@ void keyboard_interrupt_handler()
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
 }
-
+/*terminnal open function*/
 int32_t terminal_open()
 {
     return 0;
 }
-
+/*terminnal write function*/
 int32_t terminal_write(char* buf, int count)
 {
     memcpy( print_buffer, buf, sizeof(print_buffer));
@@ -147,12 +147,12 @@ int32_t terminal_write(char* buf, int count)
     putc_scroll('\n');
     return count;
 }
-
+/*terminnal close function*/
 int32_t terminal_close()
 {
     return 0;
 }
-
+/*terminnal read function*/
 int32_t terminal_read(char* buf)
 {
     if(terminal_read_ready==1)
