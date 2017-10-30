@@ -185,10 +185,10 @@ int read_input_test(){
 	return PASS;
 }
 
-
+// The length of strshort is within the range of the buffer while the strlong is not
 int write_strings_test(){
 	TEST_HEADER;
-	char strshort[]="Sample Test";
+	char strshort[]="Sample Test";  
 	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n if u c the char its wrong";
 	t_write(strshort);
 	t_write(strlong);
@@ -202,7 +202,7 @@ int print_list_of_files_test(){
 		printf("%s\n",buff);
 	}
 	
-	
+	return 1;
 }
 
 
@@ -211,9 +211,9 @@ int print_contents_test(){
 	TEST_HEADER;
 	dentry_t *d;
 	char buf[128]; 
-	read_dentry_by_name(cat,d);
-	filesys_read(d->inode,0,buf,128);
-	printf("s",buf);
+	char fname[] = "cat";
+	filesys_read_by_name(fname,buf,128);
+	printf("%s",buf);
 	return 1;
 }
 
