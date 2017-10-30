@@ -6,10 +6,10 @@ extern void rtc_init();
 /* handle rtc interrupts */
 extern void rtc_interrupt_handler();
 /* open function for rtc */
-int_32_t rtc_open();
+int32_t rtc_open();
 /* write function for rtc */
-int_32_t rtc_write(int * freq, int size);
+int32_t rtc_write(int * freq, int size);
 /* read functino for rtc */
-int_32_t rtc_read();
+int32_t rtc_read();
 /* close function for rtc */
-int_32_t rtc_close();
+int32_t rtc_close();

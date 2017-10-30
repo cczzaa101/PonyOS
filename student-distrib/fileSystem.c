@@ -15,6 +15,8 @@ inode_t * inode_table;
 #define data_block_size (4*1024)
 #define data_block(i) (data_block_start + data_block_size*i)
 #define max_name_length 32
+
+/*filesystem initialization*/  
 void filesys_init()
 {
     int32_t * temp = (int32_t *) (file_start + dir_entry_offset);
@@ -31,7 +33,12 @@ void filesys_init()
     data_block_start = (char*) file_start + data_block_size * (num_inodes + 1);
 }
 
-
+/*Read directory entry by name
+Input: const uint8_t * fname = file name string
+       dentry_t *dentry = a dentry to be filled
+Output: 0 if found , -1 fail
+Side effect: find the file by its name and fill the dentry with the file name, file
+type, and inode number for the file, then return 0*/
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t *dentry)
 {
     int i = 1,l1,l2, cmpRes;  
@@ -56,6 +63,12 @@ int32_t read_dentry_by_name (const uint8_t * fname, dentry_t *dentry)
     return -1;
 }
 
+/*Read directory entry by name
+Input: uint32_t index = file index
+       dentry_t *dentry = a dentry to be filled
+Output: 0 if found , -1 fail
+Side effect: find the file by its index and fill the dentry with the file name, file
+type, and inode number for the file, then return 0*/
 int32_t read_dentry_by_index (uint32_t index, dentry_t *dentry)
 {
     if( (index >= num_dir_entry) || (index<0) ) return -1;
@@ -66,6 +79,15 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t *dentry)
     return 0;
 }
 
+/*Read data
+  Input: uint32_t inode = Given node
+		 uint32_t offset = the offset from starting position
+		 uint8_t* buf = the buffer to be filled
+		 uint32_t length = the length bytes to read
+  Output: 0 if the end of the le has been reahed
+  		-1 if fail
+  Side Effect:  reading up to length bytes starting from position offset in the file with inode number inode and returning the number of bytes
+				read and plaed in the buffer. */ 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
     int i, block_ind_offset, first_block_offset;
@@ -119,11 +141,24 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     return 0;
 }
 
+/*filesys read
+  Input: uint32_t inode = Given node
+		 uint32_t offset = the offset from starting position
+		 uint8_t* buf = the buffer to be filled
+		 uint32_t length = the length bytes to read
+  Output: the return value of read_file
+  Side effect: see read_data*/
 int32_t filesys_read(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
     return read_data(inode, offset, buf, count);
 }
 
+/*file system read by name
+Input: const uint8_t * fname = file name string
+       uint8_t* buf = buffer to be filled
+	   uint32_t count = legnth of bytes
+Output: see read_data
+Side effect: find the inode of the file by its file name and read its content to the buffer up to "count" number*/
 int32_t filesys_read_by_name(uint8_t* fname, uint8_t* buf, uint32_t count)
 {
     dentry_t f;
@@ -164,6 +199,10 @@ int32_t dir_write()
     return -1;
 }
 
+/*directory read
+ Input: char * buf = the buffer to read the name
+ Output: 0 if there is file left to read name, -1 if no file left 
+ read and return a buffer with name of a file once a call and then move the index*/
 int32_t dir_read(char * buf)
 {
     if(current_dir_read_index >= num_dir_entry ) return -1;

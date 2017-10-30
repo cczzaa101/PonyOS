@@ -60,68 +60,6 @@ void rtc_interrupt_handler()
     sti();
 }
 
-/*RTC open function
-input: none
-output: 0
-side effects: set RTC freq to 2HZ
-*/
-int_32_t rtc_open()
-{
-    cli();
-    set_freq(2);
-    sti();
-    return 0;
-}
-
-/*RTC close function
-input: none
-output: 0
-side effects: None
-*/
-int_32_t rtc_close()
-{
-    return 0;
-}
-
-
-/*RTC read function
-input: none
-output: 0
-side effects: should block until the next interrupt, then return 0.
-*/
-int_32_t rtc_read()
-{
-    while(next_interrupt == 0 ) {}
-    next_interrupt = 0;
-    return 0;
-}
-
-/*RTC write function
-input: 
-output: 0
-side effects: should block until the next interrupt, then return 0.
-*/
-int_32_t rtc_write(int * freq, int size)
-{
-    /*check freq validity*/
-    cli();
-    if(freq == NULL) return -1;
-    if(size!= sizeof(int)) return -1;
-    int temp = *freq, flag = 0;
-    if(temp<=0) return -1;
-    if(temp>1024) temp = 1024;
-    
-    while(temp !=0)
-    {
-        if( ((temp&1)!=0)  && ( temp!=1 ) flag = 1;
-        temp>>=1;
-    }
-    if(flag==1) return -1; // freq is not power of 2
-    
-    set_freq(*freq);
-    sti();
-}
-
 /*helper function for setting frequency*/
 void set_freq(int freq)
 {
@@ -138,3 +76,67 @@ void set_freq(int freq)
     outb(NMI_MASK + 0x0A, RTC_REGISTER_PORT); //select port A
     outb((prev&0xF0)|rate, RTC_DATA_PORT); //&0xf0 to clear lowest 4bits, | rate to reset the rate
 }
+
+/*RTC open function
+input: none
+output: 0
+side effects: set RTC freq to 2HZ
+*/
+int32_t rtc_open()
+{
+    cli();
+    set_freq(2);
+    sti();
+    return 0;
+}
+
+/*RTC close function
+input: none
+output: 0
+side effects: None
+*/
+int32_t rtc_close()
+{
+    return 0;
+}
+
+
+/*RTC read function
+input: none
+output: 0
+side effects: should block until the next interrupt, then return 0.
+*/
+int32_t rtc_read()
+{
+    while(next_interrupt == 0 ) {}
+    next_interrupt = 0;
+    return 0;
+}
+
+/*RTC write function
+input: 
+output: 0
+side effects: should block until the next interrupt, then return 0.
+*/
+int32_t rtc_write(int * freq, int size)
+{
+    /*check freq validity*/
+    cli();
+    if(freq == NULL) return -1;
+    if(size!= sizeof(int)) return -1;
+    int temp = *freq, flag = 0;
+    if(temp<=0) return -1;
+    if(temp>1024) temp = 1024;
+    
+    while(temp !=0)
+    {
+        if( ((temp&1)!=0)  && ( temp!=1 ) ) flag = 1;
+        temp>>=1;
+    }
+    if(flag==1) return -1; // freq is not power of 2
+    
+    set_freq(*freq);
+    return 0;
+    sti();
+}
+
