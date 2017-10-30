@@ -185,7 +185,7 @@ void terminal_read_test()
         int res = terminal_read(temp);
         if(res==0)
         {
-            printf("%s", temp);
+            puts_scroll(temp);
         }
     }
 }
@@ -198,7 +198,7 @@ void terminal_read_test()
 void launch_tests(){
     clear();
     
-    
+    terminal_read_test();
 	//TEST_OUTPUT("idt_test", idt_test());
     //TEST_OUTPUT("exception_test_de", exception_test_de());
     //TEST_OUTPUT("null_test", null_test());
