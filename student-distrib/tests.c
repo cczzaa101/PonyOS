@@ -1,3 +1,4 @@
+#include "keyboard.h"
 #include "tests.h"
 #include "fileSystem.h"
 #include "x86_desc.h"
@@ -10,6 +11,7 @@
 #define RTC_IDT 0x28
 #define MAX_NAME_SIZE 32
 #define MAX_CONTENT_SIZE 128
+#define MAX_KEY_IND 128
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -175,6 +177,12 @@ int page_test()
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+int unknown_scancodes_test(){
+	u_int8_t c = MAX_KEY_IND+1;
+	
+}
+
 
 int read_input_test(){
 	TEST_HEADER;
