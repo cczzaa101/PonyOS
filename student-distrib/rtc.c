@@ -136,6 +136,7 @@ int32_t rtc_write(int * freq, int size)
     if(flag==1) return -1; // freq is not power of 2
     
     set_freq(*freq);
+    return 0;
     sti();
 }
 
