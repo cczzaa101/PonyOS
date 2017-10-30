@@ -1,6 +1,7 @@
 #ifndef TESTS_H
 #define TESTS_H
 #include "scancode.h"
+#include "rtc.h"
 // test launcher
 void launch_tests();
 /* function for test interrupts */

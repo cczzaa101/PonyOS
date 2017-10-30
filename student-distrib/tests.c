@@ -1,7 +1,9 @@
 #include "tests.h"
+#include "fileSystem.h"
 #include "x86_desc.h"
 #include "lib.h"
 #include "scancode.h"
+#define INT_SIZE 4
 #define PASS 1
 #define FAIL 0
 #define KB_IDT 0x21
@@ -171,6 +173,121 @@ int page_test()
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+int read_input_test(){
+	TEST_HEADER;
+	char str[150];
+	strcpy(str,kb_read());
+	if (strlen(str) > 128){
+		return FAIL;
+	}
+	puts(str);
+	return PASS;
+}
+
+
+int write_strings_test(){
+	TEST_HEADER;
+	char strshort[]="Sample Test";
+	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n if u c the char its wrong";
+	t_write(strshort);
+	t_write(strlong);
+	return 1;
+}
+
+int print_list_of_files_test(){
+	TEST_HEADER;
+	char buf[32];
+	while(dir_read(buf)==0){
+		printf("%s\n",buff);
+	}
+	
+	
+}
+
+
+
+int print_contents_test(){
+	TEST_HEADER;
+	dentry_t *d;
+	char buf[128]; 
+	read_dentry_by_name(cat,d);
+	filesys_read(d->inode,0,buf,128);
+	printf("s",buf);
+	return 1;
+}
+
+int rtc_test(){
+	TEST_HEADER;
+	int i;
+	int *freq; 
+	
+	clear();
+	*freq =1;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq =16;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 128;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 512;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 1024;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 2048;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 666;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+}
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -179,11 +296,24 @@ int page_test()
 /* Test suite entry point */
 void launch_tests(){
     clear();
+	//Checkpoint 1
 	//TEST_OUTPUT("idt_test", idt_test());
     //TEST_OUTPUT("exception_test_de", exception_test_de());
     //TEST_OUTPUT("null_test", null_test());
     //TEST_OUTPUT("out_of_bound_test", out_of_bound_test());
     //TEST_OUTPUT("page_test", page_test());
     //TEST_OUTPUT("exception_test", exception_test());
+
+	//Checkpoint 2
+    //TEST_OUTPUT("read_input_test", read_input_test());
+    //TEST_OUTPUT("write_strings_test", write_strings_test());
+    //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
+    //TEST_OUTPUT("print_contents_tests", print_contents_test());
+    //TEST_OUTPUT("rtc_test", rtc_test());
+    
 	// launch your tests here
 }
+
+
+
+
