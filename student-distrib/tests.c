@@ -235,16 +235,33 @@ int print_list_of_files_test(){
 	return 1;
 }
 
+int read_entry_index_test(){
+	TEST_HEADER;
+    dentry_t temp;
+	read_dentry_by_index (5,&temp); //read index 5 directory
+    cli();
+    printf("the filename is:%s", temp.fileName);
+	while(1);
+    sti();
+	return 1;
+}
 
 
 int print_contents_test(){
 	TEST_HEADER;
     cli();
 	unsigned char buf[MAX_CONTENT_SIZE]; 
+    int i=0;
     memset(buf,0,sizeof(buf));
 	unsigned char fname[] = "frame0.txt";
+    //unsigned char fname[] = "fish";
+    //unsigned char fname[] = "verylargetextwithverylongname.txt";
 	filesys_read_by_name(fname,buf,MAX_CONTENT_SIZE);
-	puts_scroll((char*)buf);
+	for(i=0;i<MAX_CONTENT_SIZE;i++)
+    {
+        if(buf[i] == '\0') break;
+        putc_scroll(buf[i]);
+    }   
     while(1);
     sti();
 	return 1;
@@ -353,7 +370,7 @@ void launch_tests(){
     //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
     //TEST_OUTPUT("rtc_test", rtc_test());
-    
+    //TEST_OUTPUT("read_entry_index_test", read_entry_index_test());
 	// launch your tests here
 }
 

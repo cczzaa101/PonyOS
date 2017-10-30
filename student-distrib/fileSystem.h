@@ -16,6 +16,7 @@ typedef struct  {
 
 void filesys_init();
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t *dentry);
+int32_t read_dentry_by_index (uint32_t index, dentry_t *dentry);
 int32_t filesys_read(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count);
 int32_t filesys_write();
 int32_t filesys_open();
