@@ -130,9 +130,26 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
-    puts_scroll_refresh(keyboard_buffer);
+    puts_scroll_refresh((char*)keyboard_buffer);
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
+}
+
+int32_t terminal_open()
+{
+    return 0;
+}
+
+int32_t terminal_write(char* buf, int count)
+{
+    puts_scroll(buf);
+    putc_scroll('\n');
+    return count;
+}
+
+int32_t terminal_close()
+{
+    return 0;
 }
 
 int32_t terminal_read(char* buf)

@@ -9,3 +9,6 @@ extern void keyboard_interrupt_handler();
 
 int32_t terminal_read(char* buf);
 unsigned char character_convert(unsigned char c);
+int32_t terminal_write(char* buf, int count);
+int32_t terminal_close();
+int32_t terminal_read(char* buf);
