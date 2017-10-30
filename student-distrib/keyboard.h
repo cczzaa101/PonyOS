@@ -6,3 +6,5 @@
 extern void keyboard_init();
 /*handle keyboard interrupt*/
 extern void keyboard_interrupt_handler();
+
+int32_t terminal_read(char* buf);
