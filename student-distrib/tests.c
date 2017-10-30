@@ -110,10 +110,13 @@ int exception_test(){
  */
 void interruption_test(char c, unsigned char arg)
 {
-    //return;
+    return;
     if(c=='k') //keyboard test
     {
-        printf("                      Kbtest: pressed %c   \n", character_convert(arg) );
+        if( character_convert(arg)!=0 )
+            printf("                      Kbtest: pressed %c   \n", character_convert(arg) );
+        else
+            printf("                      Kbtest: pressed unknown   \n");
         /*
         if(scancodes_map[arg]!=0)
         {
@@ -365,7 +368,7 @@ void launch_tests(){
     //TEST_OUTPUT("exception_test", exception_test());
 
 	//Checkpoint 2
-    //TEST_OUTPUT("read_input_test", read_input_test());
+    TEST_OUTPUT("read_input_test", read_input_test());
     //TEST_OUTPUT("write_strings_test", write_strings_test());
     //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
