@@ -65,7 +65,7 @@ void scancode_processing(unsigned char c)
         pressed_key[ c ] = 1;
         hold_num++;
         if( c== SCANCODE_CAPSLOCK ) cap_status = 1-cap_status;
-        if( (c==SCANCODE_L) && (pressed_key[SCANCODE_LEFTCONTROL]==1) &&(hold_num==2) )
+        if( (c==SCANCODE_L) && (pressed_key[SCANCODE_LEFTCONTROL]==1)  )
         {
             clear();
             memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
@@ -98,8 +98,8 @@ void scancode_processing(unsigned char c)
     
     if(c==SCANCODE_BACKSPACE)
     {
-        keyboard_buffer[cursor_ind] = '\0';
-        cursor_ind--;
+        keyboard_buffer[--cursor_ind] = '\0';
+        //cursor_ind--;
     }
     /*
     if( c==SCANCODE_LEFTCONTROL ) special_condition[ CTRL_IND ] = 1;
@@ -130,6 +130,7 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
+    puts_scroll_refresh(keyboard_buffer);
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
 }

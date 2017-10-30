@@ -10,6 +10,8 @@
 
 static int screen_x;
 static int screen_y;
+static int screen_x_before_input = 0;
+static int screen_y_before_input;
 static char* video_mem = (char *)VIDEO;
 
 /* void clear(void);
@@ -18,10 +20,12 @@ static char* video_mem = (char *)VIDEO;
  * Function: Clears video memory */
 void clear(void) {
     int32_t i;
+    screen_x = screen_y = screen_x_before_input = screen_y_before_input =0;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    update_cursor(screen_x, screen_y);
 }
 
 /* Standard printf().
@@ -178,6 +182,111 @@ void putc(uint8_t c) {
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
+}
+
+void shift_up()
+{
+    int x,y;
+    for(y=0; y< NUM_ROWS-1; y++)
+    {
+        for(x=0; x< NUM_COLS; x++)
+        {
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = *(video_mem + ((NUM_COLS * (y+1) + x) << 1));           
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+        }
+    }
+    
+    y = NUM_ROWS-1;
+    
+    for(x=0; x< NUM_COLS; x++)
+    {
+        *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';           
+        *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+    }
+    
+    screen_y = NUM_ROWS-1;
+    screen_x = 0;
+    screen_y_before_input = screen_y-1;
+}
+
+/* void putc_scroll(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console */
+void putc_scroll(uint8_t c) {
+    if(c == '\n' || c == '\r') {
+        screen_y++;
+        screen_x = 0;
+        if(screen_y == NUM_ROWS )
+            shift_up();
+    } else {
+        if(screen_y == NUM_ROWS) 
+            shift_up();
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;     
+        screen_y = screen_y + screen_x/NUM_COLS;
+        screen_x %= NUM_COLS;
+    }
+}
+
+/* update cursor
+ * credit to http://wiki.osdev.org/Text_Mode_Cursor*/
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * NUM_COLS + x;
+ 
+	outb(0x0F,0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
+
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
+{
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t puts_scroll(int8_t* s) {
+    register int32_t index = 0;
+    while (s[index] != '\0') {
+        putc_scroll(s[index]);
+        index++;
+    }
+    update_cursor(screen_x, screen_y);
+    screen_x_before_input = screen_x;
+    screen_y_before_input = screen_y;
+    return index;
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console , keep refreshing lastline*/
+int32_t puts_scroll_refresh(int8_t* s) {
+    register int32_t index = 0;
+    int x,y;
+    for(y=screen_y_before_input; y<=screen_y ; y++)
+    {
+        for(x=0; x< NUM_COLS; x++)
+        {
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+        }
+    }
+    
+    screen_x = 0;
+    screen_y = screen_y_before_input;
+    while (s[index] != '\0') {
+        putc_scroll(s[index]);
+        index++;
+    }
+    update_cursor(screen_x, screen_y);
+    return index;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
