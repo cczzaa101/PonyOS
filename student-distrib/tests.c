@@ -1,4 +1,6 @@
+#include "keyboard.h"
 #include "tests.h"
+#include "fileSystem.h"
 #include "x86_desc.h"
 #include "lib.h"
 #include "scancode.h"
@@ -7,6 +9,9 @@
 #define FAIL 0
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
+#define MAX_NAME_SIZE 32
+#define MAX_CONTENT_SIZE 128
+#define MAX_KEY_IND 128
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -177,18 +182,125 @@ int page_test()
 
 /* Checkpoint 2 tests */
 
-void terminal_read_test()
-{
-    char temp[129];
-    while(1)
-    {
-        int res = terminal_read(temp);
-        if(res==0)
-        {
-            puts_scroll(temp);
-        }
-    }
+int unknown_scancodes_test(){
+	u_int8_t c = MAX_KEY_IND+1;
+	
 }
+
+
+int read_input_test(){
+	TEST_HEADER;
+	char str[150];
+	strcpy(str,kb_read());
+	if (strlen(str) > MAX_CONTENT_SIZE){
+		return FAIL;
+	}
+	puts(str);
+	return PASS;
+}
+
+// The length of strshort is within the range of the buffer while the strlong is not
+int write_strings_test(){
+	TEST_HEADER;
+	char strshort[]="Sample Test";  
+	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n if u c the char its wrong";
+	t_write(strshort);
+	t_write(strlong);
+	return 1;
+}
+
+int print_list_of_files_test(){
+	TEST_HEADER;
+	char buf[MAX_NAME_SIZE];
+	while(dir_read(buf)==0){
+		printf("%s\n",buf);
+	}
+	
+	return 1;
+}
+
+
+
+int print_contents_test(){
+	TEST_HEADER;
+	char buf[MAX_CONTENT_SIZE]; 
+	char fname[] = "cat";
+	filesys_read_by_name(fname,buf,MAX_CONTENT_SIZE);
+	printf("%s",buf);
+	return 1;
+}
+
+int rtc_test(){
+	TEST_HEADER;
+	int i;
+	int *freq; 
+	
+	clear();
+	*freq =1;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq =16;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 128;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 512;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 1024;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 2048;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+	clear();
+	*freq = 666;
+	rtc_write(freq, INT_SIZE);
+	for (i=0;i<500;i++){
+		if (rtc_read() == 0){
+			putc('1');
+		}		
+	}
+	
+}
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -205,5 +317,17 @@ void launch_tests(){
     //TEST_OUTPUT("out_of_bound_test", out_of_bound_test());
     //TEST_OUTPUT("page_test", page_test());
     //TEST_OUTPUT("exception_test", exception_test());
+
+	//Checkpoint 2
+    //TEST_OUTPUT("read_input_test", read_input_test());
+    //TEST_OUTPUT("write_strings_test", write_strings_test());
+    //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
+    //TEST_OUTPUT("print_contents_tests", print_contents_test());
+    //TEST_OUTPUT("rtc_test", rtc_test());
+    
 	// launch your tests here
 }
+
+
+
+
