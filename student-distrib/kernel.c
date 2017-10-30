@@ -12,6 +12,7 @@
 #include "rtc.h"
 #include "idt.h"
 #include "paging.h"
+#include "fileSystem.h"
 #define RUN_TESTS
 
 /* Macros. */
@@ -57,8 +58,10 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        file_start = 0;
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
+            if(file_start == 0) file_start = mod->mod_start; //record the start address of file_system
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
@@ -150,6 +153,7 @@ void entry(unsigned long magic, unsigned long addr) {
     initialize_idt(); 
     lidt(idt_desc_ptr);
     paging_init();
+    filesys_init();
     keyboard_init();
     rtc_init();
     /* Enable interrupts */
