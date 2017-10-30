@@ -10,7 +10,7 @@
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
 #define MAX_NAME_SIZE 32
-#define MAX_CONTENT_SIZE 128
+#define MAX_CONTENT_SIZE 12800
 #define MAX_KEY_IND 128
 #define INT_SIZE 4
 #define RTC_BASE_COUNT 5
@@ -192,25 +192,34 @@ int unknown_scancodes_test(){
 
 
 int read_input_test(){
-    /*
+    
 	TEST_HEADER;
 	char str[150];
-	strcpy(str,kb_read());
-	if (strlen(str) > MAX_CONTENT_SIZE){
-		return FAIL;
-	}
-	puts(str);
-    */
+	while(1)
+    {
+        if(terminal_read(str)==0)
+        {
+            puts_scroll("Read from terminal:   ");
+            puts_scroll(str);
+            if (strlen(str) > MAX_CONTENT_SIZE){
+                return FAIL;
+            }
+        }
+    }
+    
 	return 1;
 }
 
 // The length of strshort is within the range of the buffer while the strlong is not
 int write_strings_test(){
+    cli();
 	TEST_HEADER;
 	char strshort[]="Sample Test";  
-	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567\n this part should be trunct!";
+	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567  this part should be trunct!";
 	terminal_write(strshort, strlen(strshort) );
 	terminal_write(strlong, strlen(strlong) );
+    while(1){}
+    sti();
 	return 1;
 }
 
@@ -220,7 +229,9 @@ int print_list_of_files_test(){
 	while(dir_read(buf)==0){
 		printf("%s\n",buf);
 	}
-	
+    cli();
+	while(1);
+    sti();
 	return 1;
 }
 
@@ -228,10 +239,14 @@ int print_list_of_files_test(){
 
 int print_contents_test(){
 	TEST_HEADER;
+    cli();
 	unsigned char buf[MAX_CONTENT_SIZE]; 
-	unsigned char fname[] = "cat";
+    memset(buf,0,sizeof(buf));
+	unsigned char fname[] = "frame0.txt";
 	filesys_read_by_name(fname,buf,MAX_CONTENT_SIZE);
-	printf("%s",buf);
+	puts_scroll((char*)buf);
+    while(1);
+    sti();
 	return 1;
 }
 
@@ -337,7 +352,7 @@ void launch_tests(){
     //TEST_OUTPUT("write_strings_test", write_strings_test());
     //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
-    TEST_OUTPUT("rtc_test", rtc_test());
+    //TEST_OUTPUT("rtc_test", rtc_test());
     
 	// launch your tests here
 }

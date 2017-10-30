@@ -95,7 +95,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     uint8_t* current_buf_addr = buf;
     
     if( (inode<0) || (inode>=num_inodes) ) return -1; //invalid index
-    if ( (offset + length) > inode_table[inode].length ) return -1; //invalid size
+    if ( (offset + length) > inode_table[inode].length ) 
+    {
+        remaining_length = inode_table[inode].length - offset;
+    }//invalid size
     
     block_ind_offset = offset / data_block_size;
     first_block_offset = offset % data_block_size;
@@ -210,6 +213,7 @@ int32_t dir_read(char * buf)
     int res = read_dentry_by_index(current_dir_read_index,&temp);
     if(res == -1) return res;
     memcpy( buf, temp.fileName, sizeof(temp.fileName) );
+    buf[max_name_length] = '\0';
     current_dir_read_index++;
     return 0;
 }

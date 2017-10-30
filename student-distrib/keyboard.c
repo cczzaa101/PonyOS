@@ -142,7 +142,8 @@ int32_t terminal_open()
 
 int32_t terminal_write(char* buf, int count)
 {
-    puts_scroll(buf);
+    memcpy( print_buffer, buf, sizeof(print_buffer));
+    puts_scroll((char*)print_buffer);
     putc_scroll('\n');
     return count;
 }
