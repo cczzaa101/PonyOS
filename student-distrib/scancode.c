@@ -66,11 +66,15 @@
 #define SCANCODE_CONTROL	97
 #define SCANCODE_RIGHTALT	100
 #define SCANCODE_LEFTCONTROL	29
+#define SCANCODE_LEFTCONTROL_RELEASE	(29+128)
 #define SCANCODE_LEFTALT        56
 
 #define SCANCODE_SPACE		57
 #define SCANCODE_LEFTSHIFT	42
 #define SCANCODE_RIGHTSHIFT	54
+#define SCANCODE_LEFTSHIFT	42
+#define SCANCODE_LEFTSHIFT_RELEASE	(42+128)
+#define SCANCODE_RIGHTSHIFT_RELEASE	(54+128)
 #define SCANCODE_TAB		15
 #define SCANCODE_CAPSLOCK	58
 #define SCANCODE_BACKSPACE	14
@@ -114,7 +118,7 @@
 #define mapSize 255
 //255 scancodes in total
 char scancodes_map[mapSize];
-
+char special_convert_map[mapSize];
 
 /*
 Initialize scancodes map
@@ -125,6 +129,14 @@ Effect: Initialize the scancodes map above
 void init_scancodes_map(void)
 {
   int i;  
+  for(i='a'; i<='z'; i++)
+      special_convert_map[i] = i + 'A' - 'a';
+  
+  for(i='A'; i<='Z'; i++)
+      special_convert_map[i] = i + 'a' - 'A';
+  
+  special_convert_map['1'] = '!';
+  special_convert_map['2'] = '@';
   for(i=0; i<mapSize; i++)
       scancodes_map[i] = 0;
 
