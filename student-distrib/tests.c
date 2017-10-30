@@ -8,6 +8,8 @@
 #define FAIL 0
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
+#define MAX_NAME_SIZE 32
+#define MAX_CONTENT_SIZE 128
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -178,7 +180,7 @@ int read_input_test(){
 	TEST_HEADER;
 	char str[150];
 	strcpy(str,kb_read());
-	if (strlen(str) > 128){
+	if (strlen(str) > MAX_CONTENT_SIZE){
 		return FAIL;
 	}
 	puts(str);
@@ -197,7 +199,7 @@ int write_strings_test(){
 
 int print_list_of_files_test(){
 	TEST_HEADER;
-	char buf[32];
+	char buf[MAX_NAME_SIZE];
 	while(dir_read(buf)==0){
 		printf("%s\n",buf);
 	}
@@ -209,9 +211,9 @@ int print_list_of_files_test(){
 
 int print_contents_test(){
 	TEST_HEADER;
-	char buf[128]; 
+	char buf[MAX_CONTENT_SIZE]; 
 	char fname[] = "cat";
-	filesys_read_by_name(fname,buf,128);
+	filesys_read_by_name(fname,buf,MAX_CONTENT_SIZE);
 	printf("%s",buf);
 	return 1;
 }
