@@ -15,8 +15,9 @@ inode_t * inode_table;
 #define data_block_size (4*1024)
 #define data_block(i) (data_block_start + data_block_size*i)
 #define max_name_length 32
+#define max_int 0x7fffffff
 
-/*filesystem initialization*/  
+/*filesystem initialization*/
 void filesys_init()
 {
     int32_t * temp = (int32_t *) (file_start + dir_entry_offset);
@@ -25,11 +26,11 @@ void filesys_init()
     num_inodes = *temp;
     temp = (int32_t *) (file_start + data_blocks_offset);
     num_data_blocks = *temp;
-    
+
     dir_table = (dentry_t *) ( file_start + sizeof(dentry_t) );
-    
+
     inode_table = (inode_t *) ( file_start + sizeof(inode_t) );
-    
+
     data_block_start = (char*) file_start + data_block_size * (num_inodes + 1);
 }
 
@@ -41,7 +42,7 @@ Side effect: find the file by its name and fill the dentry with the file name, f
 type, and inode number for the file, then return 0*/
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t *dentry)
 {
-    int i = 1,l1,l2, cmpRes;  
+    int i = 1,l1,l2, cmpRes;
     for(i = 0; i<num_dir_entry; i++)
     {
         l1 = strlen( (int8_t *)fname );
@@ -87,22 +88,22 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t *dentry)
   Output: 0 if the end of the le has been reahed
   		-1 if fail
   Side Effect:  reading up to length bytes starting from position offset in the file with inode number inode and returning the number of bytes
-				read and plaed in the buffer. */ 
+				read and plaed in the buffer. */
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
     int i, block_ind_offset, first_block_offset;
     int remaining_length = length, copied_length;
     uint8_t* current_buf_addr = buf;
-    
+
     if( (inode<0) || (inode>=num_inodes) ) return -1; //invalid index
-    if ( (offset + length) > inode_table[inode].length ) 
+    if ( (offset + length) > inode_table[inode].length )
     {
         remaining_length = inode_table[inode].length - offset;
     }//invalid size
-    
+
     block_ind_offset = offset / data_block_size;
     first_block_offset = offset % data_block_size;
-    
+
     for( i = block_ind_offset; i < inode_table[inode].length; i++ )
     {
         if( i == block_ind_offset )
@@ -111,13 +112,13 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
                 copied_length = (data_block_size - first_block_offset);
             else
                 copied_length = remaining_length;
-            
-            memcpy( 
-                        current_buf_addr, 
-                        (uint8_t*)( data_block( inode_table[inode].data[i] ) + first_block_offset), 
+
+            memcpy(
+                        current_buf_addr,
+                        (uint8_t*)( data_block( inode_table[inode].data[i] ) + first_block_offset),
                         copied_length
                       );
-            
+
             remaining_length -= copied_length;
             current_buf_addr += copied_length;
 
@@ -128,19 +129,19 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
                 copied_length = data_block_size;
             else
                 copied_length = remaining_length;
-            
-            memcpy( 
-                        current_buf_addr, 
-                        (uint8_t*)( data_block( inode_table[inode].data[i] ) ), 
+
+            memcpy(
+                        current_buf_addr,
+                        (uint8_t*)( data_block( inode_table[inode].data[i] ) ),
                         copied_length
                       );
             remaining_length -= copied_length;
             current_buf_addr += copied_length;
         }
-        
+
         if(remaining_length<=0) break;
     }
-    
+
     return 0;
 }
 
@@ -204,7 +205,7 @@ int32_t dir_write()
 
 /*directory read
  Input: char * buf = the buffer to read the name
- Output: 0 if there is file left to read name, -1 if no file left 
+ Output: 0 if there is file left to read name, -1 if no file left
  read and return a buffer with name of a file once a call and then move the index*/
 int32_t dir_read(char * buf)
 {
@@ -216,4 +217,11 @@ int32_t dir_read(char * buf)
     buf[max_name_length] = '\0';
     current_dir_read_index++;
     return 0;
+}
+
+int32_t load_executable(char * fname, char* dest)
+{
+    if( filesys_read_by_name(fname, dest, max_int)!= -1 )
+        return 0;
+    else return -1;
 }

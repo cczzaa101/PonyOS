@@ -1,3 +1,5 @@
+#ifndef _FILESYS_H
+#define _FILESYS_H
 #define inode_data_size 1023
 #define fileNameLength 32
 #define reserved_dentry_length 24
@@ -26,4 +28,5 @@ int32_t dir_read(char * buf);
 int32_t dir_write();
 int32_t dir_open();
 int32_t dir_close();
-
+int32_t load_executable(char * fname, char* dest);
+#endif
