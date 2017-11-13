@@ -235,6 +235,9 @@ int32_t dir_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t
     return dir_read((char*)buf);
 }
 
+/*load executable 
+input: fname = file name, dest: destination
+output: 0 if successful, -1 if fail*/
 int32_t load_executable(char * fname, char* dest)
 {
     if( filesys_read_by_name((uint8_t*)fname, (uint8_t*)dest, max_int)!= -1 )
