@@ -10,6 +10,7 @@
 #define ASSIGNED_PCB_SIZE 0x2000
 #define EXEC_INFO_BYTES 28
 #define MAX_PID 16
+#define MEM_DEFENSE_SIZE
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
@@ -133,7 +134,7 @@ int32_t execute (const uint8_t* command)
 
 
     /* refresh tss */
-    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - 8;
+    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
 
     pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
