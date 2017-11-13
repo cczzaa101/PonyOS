@@ -69,3 +69,26 @@ back_to_user_mode:
     movl 20(%esp), %eax
     pushl %eax
     iret
+
+/*
+systemcall wrapper
+https://web.archive.org/web/20160326062442/http://jamesmolloy.co.uk/tutorial_html/10.-User%20Mode.html
+*/
+systemcall_wrapper:
+    pusha
+    /* push the arguments */
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+
+    call *system_call_jumptable(,%eax,4)
+
+    popl %ebx
+    popl %ecx
+    popl %edx
+    popa
+    iret
+
+system_call_jumptable:
+    .long $0
+    .long halt, execute, read, write, open, close
