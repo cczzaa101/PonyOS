@@ -313,5 +313,6 @@ void initialize_idt()
     SET_IDT_ENTRY(idt[18], exception_mc);
     SET_IDT_ENTRY(idt[19], exception_xf);
 
-    SET_IDT_ENTRY(idt[SYSCALL_INDEX], systemcall_wrapper );
+    //general_handler_wrapper();
+    SET_IDT_ENTRY(idt[SYSCALL_INDEX], general_handler_wrapper );
 }

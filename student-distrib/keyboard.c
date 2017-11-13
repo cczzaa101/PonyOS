@@ -150,7 +150,7 @@ int32_t terminal_write(char* buf, int count)
 
 int32_t terminal_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
-    return terminal_write(buf, count);
+    return terminal_write((char*)buf, (int)count);
 }
 
 /*terminnal close function*/
@@ -175,5 +175,5 @@ int32_t terminal_read(char* buf, int count)
 
 int32_t terminal_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
-    return terminal_read(buf, count);
+    return terminal_read((char*)buf, (int)count);
 }

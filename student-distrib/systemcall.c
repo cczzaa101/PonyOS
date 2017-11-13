@@ -1,19 +1,23 @@
 #include "lib.h"
 #include "systemcall.h"
+#include "rtc.h"
 #include "keyboard.h"
+#include "x86_desc.h"
+#include "interrupt_handler_wrapper.h"
+#include "paging.h"
 #define MAX_ARG_SIZE 4096
 #define USER_PROGRAM_ADDR 0x8048000
 #define ASSIGNED_PCB_SIZE 0x2000
 char arg_buf[MAX_ARG_SIZE];
-char process_status = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
-static int kernel_stack_bottom = (0x0800000)
+static int kernel_stack_bottom = (0x0800000);
 
 void pcb_init(int pid)
 {
     int i;
-    kernel_stack_bottom -= ASSIGNED_PCB_SIZE
-    (pcb_t*) pcb = (pcb_t*) kernel_stack_bottom;
+    kernel_stack_bottom -= ASSIGNED_PCB_SIZE;
+    pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
     pcb->pid = pid;
     /* stdin */
     (pcb->file_array)[0].read = terminal_read_wrapper;
@@ -28,7 +32,7 @@ void pcb_init(int pid)
     {
         (pcb->file_array)[i].flags = 0;
     }
-    pcb->parent = kernel_stack_bottom + ASSIGNED_PCB_SIZE;
+    pcb->parent = (int32_t*) ( kernel_stack_bottom + ASSIGNED_PCB_SIZE );
 }
 
 int32_t get_empty_pid()
@@ -40,6 +44,23 @@ int32_t get_empty_pid()
             return i;
     }
     return -1;
+}
+
+int32_t halt(int32_t status)
+{
+    int esp;
+    asm ("movl %%esp, %0" : "=r" (esp) );
+    esp = esp & ( 1<<13 );
+    pcb_t* pcb = (pcb_t*) esp;
+    kernel_stack_bottom += ASSIGNED_PCB_SIZE;
+    tss.esp0 = pcb->parent_esp;
+    asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
+    asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
+    setup_task_page(0); //temporary solution, need change later
+
+    asm ("leave"  );
+    asm ("ret" );
+    return 0;
 }
 
 int32_t execute (const uint8_t* command)
@@ -71,7 +92,7 @@ int32_t execute (const uint8_t* command)
 
     /*make a note of entry point */
     int32_t * tempBuf_int = (int32_t *) tempBuf;
-    int32_t entry_point = tempBuf[7]; //at bytes 23~27, i.e. 28/4 = 7 for int
+    int32_t entry_point = tempBuf_int[7]; //at bytes 23~27, i.e. 28/4 = 7 for int
 
     /* copy argument */
     for(;i<strlen( (char*)command); i++ )
@@ -90,6 +111,11 @@ int32_t execute (const uint8_t* command)
     /* refresh tss */
     tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE;
 
+    pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+    asm ("movl %%esp, %0" : "=r" (pcb->parent_esp) );
+    asm ("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
+    asm ("movl %0, %%esp" :: "r" (kernel_stack_bottom + ASSIGNED_PCB_SIZE) );
+    asm ("movl %0, %%ebp" :: "r" (kernel_stack_bottom + ASSIGNED_PCB_SIZE) );
     back_to_user_mode(entry_point);
 
     return 0;
@@ -99,8 +125,9 @@ int32_t open(const uint8_t* filename)
 {
     dentry_t temp;
     int i;
-    if( read_dentry_by_name ( fname, &temp ) == -1 ) return -1;
-    (pcb_t*) pcb = (pcb_t*) kernel_stack_bottom;
+    if( read_dentry_by_name ( filename, &temp ) == -1 ) return -1;
+    pcb_t* pcb;
+    pcb = (pcb_t*) kernel_stack_bottom;
     for(i = 0; i<FDT_SIZE; i++)
         if( (pcb->file_array)[i].flags == 0) break;
 
@@ -111,20 +138,20 @@ int32_t open(const uint8_t* filename)
     (pcb->file_array)[i].flags = 1;
 
     (pcb->file_array)[i].file_position= 0;
-    if(pcb->fileType == RTC_TYPE)
+    if( temp.fileType == RTC_TYPE)
     {
-        (pcb->file_array)[i].read = RTC_read_wrapper;
-        (pcb->file_array)[i].write = RTC_write_wrapper;
+        (pcb->file_array)[i].read = rtc_read_wrapper;
+        (pcb->file_array)[i].write = rtc_write_wrapper;
     }
-    else if(pcb->fileType == REG_TYPE)
+    else if( temp.fileType == REG_TYPE)
     {
         (pcb->file_array)[i].read = filesys_read;
         (pcb->file_array)[i].write = filesys_write_wrapper;
     }
-    else if(pcb->fileType == DIR_TYPE)
+    else if( temp.fileType == DIR_TYPE)
     {
-        (pcb->file_array)[i].read = DIR_read_wrapper;
-        (pcb->file_array)[i].write = DIR_write_wrapper;
+        (pcb->file_array)[i].read = dir_read_wrapper;
+        (pcb->file_array)[i].write = dir_write_wrapper;
     }
 
     return 0;
@@ -135,9 +162,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     if(fd >= FDT_SIZE ) return -1;
     else
     {
-        (pcb_t*) pcb = kernel_stack_bottom;
+        pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
         int offset = (pcb->file_array)[fd].file_position;
-
+        int inode = (pcb->file_array)[fd].inode;
         int bytes_read = (pcb->file_array)[fd].read(inode, offset, buf, nbytes);
         if( bytes_read == -1 )
             return -1;
@@ -153,9 +180,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes)
     if(fd >= FDT_SIZE ) return -1;
     else
     {
-        (pcb_t*) pcb = kernel_stack_bottom;
+        pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
         int offset = 0;
-
+        int inode = (pcb->file_array)[fd].inode;
         int bytes_written = (pcb->file_array)[fd].write(inode, offset, buf, nbytes);
         if( bytes_written == -1 )
             return -1;
@@ -169,6 +196,16 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 {
     if(buf == NULL ) return -1;
     if(arg_available==0) return -1;
-    copy_to_user(buf, arg_buf, nbytes);
+    memcpy(buf, arg_buf, nbytes);
+    return 0;
+}
+
+int32_t do_nothing()
+{
+    return 0;
+}
+
+int32_t close()
+{
     return 0;
 }

@@ -231,12 +231,12 @@ int32_t dir_read(char * buf)
 
 int32_t dir_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
-    return dir_read(buf);
+    return dir_read((char*)buf);
 }
 
 int32_t load_executable(char * fname, char* dest)
 {
-    if( filesys_read_by_name(fname, dest, max_int)!= -1 )
+    if( filesys_read_by_name((uint8_t*)fname, (uint8_t*)dest, max_int)!= -1 )
         return 0;
     else return -1;
 }
