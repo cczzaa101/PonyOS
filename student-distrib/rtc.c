@@ -119,7 +119,7 @@ int32_t rtc_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t
 }
 
 /*RTC write function
-input:
+input: freq = frequency to set, size
 output: 0
 side effects: should block until the next interrupt, then return 0.
 */
@@ -145,6 +145,7 @@ int32_t rtc_write(int * freq, int size)
     return 0;
 }
 
+//See rtc_write
 int32_t rtc_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
     return rtc_write((int32_t * )buf,sizeof(int32_t));

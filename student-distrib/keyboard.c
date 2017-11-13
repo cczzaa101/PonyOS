@@ -54,7 +54,8 @@ unsigned char character_convert(unsigned char c)
         res = special_convert_map[res];
     return res;
 }
-/* processing scancode, change keyboard buffer*/
+/* processing scancode, change keyboard buffer
+input: c = scancode*/
 void scancode_processing(unsigned char c)
 {
     int i;
@@ -154,7 +155,8 @@ int32_t terminal_open()
 {
     return 0;
 }
-/*terminnal write function*/
+/*terminnal write function
+input: buf = the buffer to write from, count = length*/
 int32_t terminal_write(char* buf, int count)
 {
     if(strncmp("391OS> ", buf, strlen( (char*) "391OS> ")) ==0 ) return count;
@@ -173,6 +175,7 @@ int32_t terminal_write(char* buf, int count)
     return count;
 }
 
+// See terminal_write
 int32_t terminal_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
     return terminal_write((char*)buf, (int)count);
@@ -195,6 +198,7 @@ int32_t terminal_read(char* buf, int count)
     return strlen(buf);
 }
 
+//see terminal_read
 int32_t terminal_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
 {
     return terminal_read((char*)buf, (int)count);
