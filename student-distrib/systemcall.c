@@ -10,7 +10,7 @@
 #define ASSIGNED_PCB_SIZE 0x2000
 #define EXEC_INFO_BYTES 28
 #define MAX_PID 16
-#define MEM_DEFENSE_SIZE
+#define MEM_DEFENSE_SIZE 8
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
