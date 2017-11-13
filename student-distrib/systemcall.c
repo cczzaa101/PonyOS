@@ -69,6 +69,8 @@ int32_t halt(int32_t status)
 
 int32_t execute (const uint8_t* command)
 {
+    if(command == NULL) return -1;
+
     int i,j,cnt = 0;
     char fname[MAX_ARG_SIZE];
 
