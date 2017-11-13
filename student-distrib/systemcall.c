@@ -87,6 +87,11 @@ int32_t execute (const uint8_t* command)
     /* assign page */
     setup_task_page(pid);
 
+    /* refresh tss */
+    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE;
+
+    back_to_user_mode(entry_point);
+
     return 0;
 }
 
