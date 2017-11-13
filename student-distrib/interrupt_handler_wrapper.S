@@ -51,7 +51,10 @@ systemcall wrapper
 https://web.archive.org/web/20160326062442/http://jamesmolloy.co.uk/tutorial_html/10.-User%20Mode.html
 */
 general_handler_wrapper:
-    pusha
+    pushl %ebp
+    pushl %esi
+    pushl %edi
+
     /* push the arguments */
     pushl %edx
     pushl %ecx
@@ -62,7 +65,11 @@ general_handler_wrapper:
     popl %ebx
     popl %ecx
     popl %edx
-    popa
+
+    popl %edi
+    popl %esi
+    popl %ebp
+
     iret
 
 /*
@@ -79,11 +86,12 @@ back_to_user_mode:
 
     movl %esp, %eax
     pushl $USER_DS
-    pushl $0x08448000
+    pushl $0x083FFFF7
     pushf
     /* reset IF flag */
     popl %eax
-    orl $0x200, %eax
+    orl $0x4200, %eax
+    pushl %eax
     pushl $USER_CS
     movl 20(%esp), %eax
     pushl %eax
@@ -92,4 +100,4 @@ back_to_user_mode:
 
 system_call_jumptable:
     .long do_nothing
-    .long halt, execute, read, write, open, close
+    .long halt, execute, read, write, open, close, getargs

@@ -142,7 +142,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         if(remaining_length<=0) break;
     }
 
-    return 0;
+    return strlen(buf);
 }
 
 /*filesys read
@@ -183,6 +183,7 @@ int32_t filesys_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uin
 
 int32_t filesys_open()
 {
+    current_dir_read_index = 0;
     return 0;
 }
 
@@ -219,7 +220,7 @@ int32_t dir_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_
  read and return a buffer with name of a file once a call and then move the index*/
 int32_t dir_read(char * buf)
 {
-    if(current_dir_read_index >= num_dir_entry ) return -1;
+    if(current_dir_read_index >= num_dir_entry ) return 0;
     dentry_t temp;
     int res = read_dentry_by_index(current_dir_read_index,&temp);
     if(res == -1) return res;

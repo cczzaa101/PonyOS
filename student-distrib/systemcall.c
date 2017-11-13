@@ -11,8 +11,8 @@
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
-static int kernel_stack_bottom = (0x0800000);
-
+static int kernel_stack_bottom = ((0x0800000)-(0x2000));
+static int entry_point;
 void pcb_init(int pid)
 {
     int i;
@@ -50,13 +50,17 @@ int32_t halt(int32_t status)
 {
     int esp;
     asm ("movl %%esp, %0" : "=r" (esp) );
-    esp = esp & ( 1<<13 );
+    esp = kernel_stack_bottom;
     pcb_t* pcb = (pcb_t*) esp;
+
+    process_status[ pcb->pid ] = 0;
     kernel_stack_bottom += ASSIGNED_PCB_SIZE;
-    tss.esp0 = pcb->parent_esp;
+    setup_task_page(0); //temporary solution, need change later
+
+    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - 8;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
     asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
-    setup_task_page(0); //temporary solution, need change later
+    asm ("movl %0, %%eax" :: "r" (0) );
 
     asm ("leave"  );
     asm ("ret" );
@@ -87,14 +91,9 @@ int32_t execute (const uint8_t* command)
             return -1;
     }
 
-    /* load user_level program */
-    if(load_executable( fname, (char*)USER_PROGRAM_ADDR )==-1) return -1;
-
-    /*make a note of entry point */
-    int32_t * tempBuf_int = (int32_t *) tempBuf;
-    int32_t entry_point = tempBuf_int[7]; //at bytes 23~27, i.e. 28/4 = 7 for int
-
     /* copy argument */
+    for(;i<strlen( (char*)command); i++ )
+        if(command[i]!=' ') break;
     for(;i<strlen( (char*)command); i++ )
         arg_buf[cnt++] = command[i];
     arg_buf[cnt] = '\0';
@@ -108,14 +107,22 @@ int32_t execute (const uint8_t* command)
     /* assign page */
     setup_task_page(pid);
 
+    /* load user_level program */
+    if(load_executable( fname, (char*)USER_PROGRAM_ADDR )==-1) return -1;
+
+    /*make a note of entry point */
+    int32_t * tempBuf_int = (int32_t *) tempBuf;
+    entry_point = tempBuf_int[6]; //at bytes 23~27, i.e. 28/4 = 7 for int
+
+
     /* refresh tss */
-    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE;
+    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - 8;
 
     pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
-    asm ("movl %%esp, %0" : "=r" (pcb->parent_esp) );
-    asm ("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
-    asm ("movl %0, %%esp" :: "r" (kernel_stack_bottom + ASSIGNED_PCB_SIZE) );
-    asm ("movl %0, %%ebp" :: "r" (kernel_stack_bottom + ASSIGNED_PCB_SIZE) );
+    asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
+    asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
+    asm volatile("movl %0, %%ebp" :: "r" (tss.esp0) );
+    asm volatile("movl %0, %%esp" :: "r" (tss.esp0) );
     back_to_user_mode(entry_point);
 
     return 0;
@@ -150,11 +157,12 @@ int32_t open(const uint8_t* filename)
     }
     else if( temp.fileType == DIR_TYPE)
     {
+        filesys_open();
         (pcb->file_array)[i].read = dir_read_wrapper;
         (pcb->file_array)[i].write = dir_write_wrapper;
     }
 
-    return 0;
+    return i;
 }
 
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
@@ -162,6 +170,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     if(fd >= FDT_SIZE ) return -1;
     else
     {
+        memset(buf,0,sizeof(buf));
         pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
         int offset = (pcb->file_array)[fd].file_position;
         int inode = (pcb->file_array)[fd].inode;

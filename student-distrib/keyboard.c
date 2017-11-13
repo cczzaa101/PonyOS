@@ -142,9 +142,12 @@ int32_t terminal_open()
 /*terminnal write function*/
 int32_t terminal_write(char* buf, int count)
 {
-    memcpy( print_buffer, buf, sizeof(print_buffer));
+    int lim = sizeof(print_buffer);
+    if(count<lim) lim = count;
+    memcpy( print_buffer, buf, lim );
+    print_buffer[lim] = 0;
     puts_scroll((char*)print_buffer);
-    putc_scroll('\n');
+    //putc_scroll('\n');
     return count;
 }
 
@@ -161,16 +164,13 @@ int32_t terminal_close()
 /*terminnal read function*/
 int32_t terminal_read(char* buf, int count)
 {
-    if(terminal_read_ready==1)
+    sti();
+    while(terminal_read_ready!=1)
     {
-        memcpy(buf, print_buffer, count);
-        terminal_read_ready = 0;
-        return count;
     }
-    else
-    {
-        return -1;
-    }
+    memcpy(buf, print_buffer, count);
+    terminal_read_ready = 0;
+    return strlen(buf);
 }
 
 int32_t terminal_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)

@@ -36,7 +36,7 @@ void page_directory_init(int ind)
 {
     #define d(i) page_dir[i]
     d(ind).present = 0;
-    d(ind).read_write =0;
+    d(ind).read_write =1;
     d(ind).user_supervisor=0;
     d(ind). write_through =0;
     d(ind). cache_disabled=0;
@@ -87,7 +87,7 @@ void paging_init()
     kernel_dir.present = 1;
     kernel_dir.aligned_address = 1024; //start at 4mb = 1024*4kb
     kernel_dir.size = 1; //4mb page
-
+    kernel_dir.user_supervisor = 1;
     //1. page_dir address to cr3
     //2. set paging and protection bits of cr0
     //3. set cr4 to enable 4bits
@@ -108,8 +108,9 @@ void paging_init()
 
 void setup_task_page(int ind)
 {
-    page_directory_init(ind);
+    page_directory_init(32);
     page_dir[32].present = 1;
+    page_dir[32].user_supervisor = 1;
     page_dir[32].size = 1; //4mb page? not sure
     page_dir[32].aligned_address = (ind * SINGLE_PAGE_DIR_OFFSET) + USER_LEVEL_OFFSET; //start at 8mb + ind*4mb
     __asm__ ( "leal page_dir,%eax;"
