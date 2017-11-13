@@ -15,9 +15,10 @@
 #define RELEASE(i) (i-128)
 #define MAX_KEY_IND 127
 #define TOTAL_KEY_NUM 128
+#define PRINT_LIM 1025
 int8_t pressed_key[TOTAL_KEY_NUM];
 unsigned char keyboard_buffer[TOTAL_KEY_NUM+1] = "391OS> ";
-unsigned char print_buffer[TOTAL_KEY_NUM+1];
+unsigned char print_buffer[PRINT_LIM];
 int cap_status;
 int cursor_ind;
 int hold_num;

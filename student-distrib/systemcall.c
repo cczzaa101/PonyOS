@@ -216,7 +216,11 @@ int32_t do_nothing()
     return 0;
 }
 
-int32_t close()
+int32_t close(int32_t fd)
 {
+    if(fd >= FDT_SIZE ) return -1;
+    pcb_t* pcb;
+    pcb = (pcb_t*) kernel_stack_bottom;
+    (pcb->file_array)[fd].flags = 0;
     return 0;
 }
