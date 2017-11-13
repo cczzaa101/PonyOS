@@ -100,7 +100,7 @@ back_to_user_mode:
     pushf
     /* reset IF flag */
     popl %eax
-    orl $0x4200, %eax
+    orl $0x200, %eax
     pushl %eax
     pushl $USER_CS
     movl 20(%esp), %eax
