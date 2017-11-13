@@ -106,6 +106,8 @@ void paging_init()
     );
 }
 
+/*setting up task page
+input: ind= index of pages*/
 void setup_task_page(int ind)
 {
     page_directory_init(32);
