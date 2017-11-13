@@ -7,9 +7,10 @@
 #define RTC_TYPE 0
 #define DIR_TYPE 1
 #define REG_TYPE 2
-int32_t (*file_operation[])(char*, int32_t) = { terminal_read, dir_read, filesys_read }
+//int32_t (*file_operation[])(char*, int32_t) = { terminal_read, dir_read, filesys_read }
 typedef struct{
-    int32_t (*operation) ();
+    int32_t (*read) (uint32_t, uint32_t, uint8_t*, uint32_t);
+    int32_t (*write) (uint32_t, uint32_t, uint8_t*, uint32_t);
     int32_t inode, file_position, flags;
 }file_desc_t;
 

@@ -15,8 +15,14 @@ void pcb_init(int pid)
     kernel_stack_bottom -= ASSIGNED_PCB_SIZE
     (pcb_t*) pcb = (pcb_t*) kernel_stack_bottom;
     pcb->pid = pid;
-    (pcb->file_array)[0].operation = terminal_operation_table;
+    /* stdin */
+    (pcb->file_array)[0].read = terminal_read_wrapper;
+    (pcb->file_array)[0].write = NULL;
     (pcb->file_array)[0].flags = 1;
+    /* stdout */
+    (pcb->file_array)[1].read = NULL;
+    (pcb->file_array)[1].write = terminal_write_wrapper;
+    (pcb->file_array)[1].flags = 1;
 
     for(i=2; i<FDT_SIZE; i++)
     {
@@ -101,11 +107,20 @@ int32_t open(const uint8_t* filename)
 
     (pcb->file_array)[i].file_position= 0;
     if(pcb->fileType == RTC_TYPE)
-        (pcb->file_array)[i].operation = RTC_operation_table;
-    else if(pcb->fileType == REG_type)
-        (pcb->file_array)[i].operation = REG_operation_table;
-    else if(pcb->fileType == DIR_type)
-        (pcb->file_array)[i].operation = DIR_operation_table;
+    {
+        (pcb->file_array)[i].read = RTC_read_wrapper;
+        (pcb->file_array)[i].write = RTC_write_wrapper;
+    }
+    else if(pcb->fileType == REG_TYPE)
+    {
+        (pcb->file_array)[i].read = filesys_read;
+        (pcb->file_array)[i].write = filesys_write_wrapper;
+    }
+    else if(pcb->fileType == DIR_TYPE)
+    {
+        (pcb->file_array)[i].read = DIR_read_wrapper;
+        (pcb->file_array)[i].write = DIR_write_wrapper;
+    }
 
     return 0;
 }
@@ -116,7 +131,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     else
     {
         (pcb_t*) pcb = kernel_stack_bottom;
-        int bytes_read = (pcb->file_array)[fd].operation[0](buf, nbytes);
+        int offset = (pcb->file_array)[fd].file_position;
+
+        int bytes_read = (pcb->file_array)[fd].read(inode, offset, buf, nbytes);
         if( bytes_read == -1 )
             return -1;
 
@@ -125,6 +142,24 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
 
     }
 }
+
+int32_t write(int32_t fd, void* buf, int32_t nbytes)
+{
+    if(fd >= FDT_SIZE ) return -1;
+    else
+    {
+        (pcb_t*) pcb = kernel_stack_bottom;
+        int offset = 0;
+
+        int bytes_written = (pcb->file_array)[fd].write(inode, offset, buf, nbytes);
+        if( bytes_written == -1 )
+            return -1;
+
+        return bytes_written;
+
+    }
+}
+
 int32_t getargs(uint8_t* buf, int32_t nbytes)
 {
     if(buf == NULL ) return -1;
