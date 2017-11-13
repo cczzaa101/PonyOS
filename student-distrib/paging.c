@@ -6,7 +6,7 @@
 #define initial_dir page_dir[0]
 #define SINGLE_PAGE_DIR_OFFSET 1024
 #define USER_LEVEL_OFFSET  (2*1024)
-
+#define USER_SPACE_START 32
 /*Initialize page table's entry to all 0
  *Input: ind = the index of entry
  *output: none
@@ -111,11 +111,11 @@ input: ind= index of pages
 output: none*/
 void setup_task_page(int ind)
 {
-    page_directory_init(32);
-    page_dir[32].present = 1;
-    page_dir[32].user_supervisor = 1;
-    page_dir[32].size = 1; //4mb page? not sure
-    page_dir[32].aligned_address = (ind * SINGLE_PAGE_DIR_OFFSET) + USER_LEVEL_OFFSET; //start at 8mb + ind*4mb
+    page_directory_init(USER_SPACE_START);
+    page_dir[USER_SPACE_START].present = 1;
+    page_dir[USER_SPACE_START].user_supervisor = 1;
+    page_dir[USER_SPACE_START].size = 1; //4mb page? not sure
+    page_dir[USER_SPACE_START].aligned_address = (ind * SINGLE_PAGE_DIR_OFFSET) + USER_LEVEL_OFFSET; //start at 8mb + ind*4mb
     __asm__ ( "leal page_dir,%eax;"
               "movl %eax,%cr3;"
 
