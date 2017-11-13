@@ -380,5 +380,12 @@ void launch_tests(){
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
     //TEST_OUTPUT("rtc_test", rtc_test());
     //TEST_OUTPUT("read_entry_index_test", read_entry_index_test());
+	
+	//Checkpoint 3
+ 	//TEST_OUTPUT("run_the_shell_test", run_the_shell_test());
+ 	//TEST_OUTPUT("halt_the_shell_test", halt_the_shell_test());
+ 	//TEST_OUTPUT("read_write_terminal_test", read_write_terminal_test());
+ 	//TEST_OUTPUT("check_multiple_steps_test", check_multiple_steps_test());
+ 	//TEST_OUTPUT("open_close_read_write_test", open_close_read_write_test());
 	// launch your tests here
 }
