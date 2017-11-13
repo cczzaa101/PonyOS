@@ -72,7 +72,7 @@ void scancode_processing(unsigned char c)
             clear();
             memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
             memcpy(keyboard_buffer, "391OS> ", strlen("391OS> "));
-            cursor_ind = 0;
+            cursor_ind = strlen((char*)keyboard_buffer);
         }
         else if(scancodes_map[c]!=0)
         {
@@ -110,7 +110,8 @@ void scancode_processing(unsigned char c)
 
     if(c==SCANCODE_BACKSPACE)
     {
-        keyboard_buffer[--cursor_ind] = '\0';
+        if(cursor_ind!= strlen((char*)"391OS> "))
+            keyboard_buffer[--cursor_ind] = '\0';
         //cursor_ind--;
     }
     /*
