@@ -13,6 +13,10 @@ char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
 static int kernel_stack_bottom = ((0x0800000)-(0x2000));
 static int entry_point;
+
+/*initialize pcb
+  input: pid = process id
+  output; none	*/
 void pcb_init(int pid)
 {
     int i;
@@ -35,6 +39,9 @@ void pcb_init(int pid)
     pcb->parent = (int32_t*) ( kernel_stack_bottom + ASSIGNED_PCB_SIZE );
 }
 
+/*get empty process id
+input: none
+output: id if found, -1 if not found*/
 int32_t get_empty_pid()
 {
     int i;
@@ -46,6 +53,9 @@ int32_t get_empty_pid()
     return -1;
 }
 
+/*halt
+input: status
+output: 0 if successful*/
 int32_t halt(int32_t status)
 {
     int esp;
@@ -67,6 +77,9 @@ int32_t halt(int32_t status)
     return 0;
 }
 
+/*execute with filename and argument
+ input: command
+ output: 0 if succeful, -1 if fail*/
 int32_t execute (const uint8_t* command)
 {
     int i,j,cnt = 0;
@@ -128,6 +141,10 @@ int32_t execute (const uint8_t* command)
     return 0;
 }
 
+
+/*open a file
+input: filename
+output: i = file index, -1 if fail*/
 int32_t open(const uint8_t* filename)
 {
     dentry_t temp;
@@ -165,6 +182,9 @@ int32_t open(const uint8_t* filename)
     return i;
 }
 
+/*read a file into buffer
+input: fd = file descriptor, buf = buffer to fill, nbytes = length
+output: -1 if fail, bytes_read if successful, number of bytes read*/
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
     if(fd >= FDT_SIZE ) return -1;
@@ -184,6 +204,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     }
 }
 
+/*writes a buffer into file
+input: fd = file descriptor, buf = buffer to write from, nbytes = length
+output: -1 if fail, bytes_read if successful, number of bytes write*/
 int32_t write(int32_t fd, void* buf, int32_t nbytes)
 {
     if(fd >= FDT_SIZE ) return -1;
@@ -200,7 +223,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes)
 
     }
 }
-
+/*get arguments from the command in execute
+input: buf = part of command from execute, nbytes = length
+output: -1 if fail, 0 if success*/
 int32_t getargs(uint8_t* buf, int32_t nbytes)
 {
     if(buf == NULL ) return -1;
