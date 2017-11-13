@@ -70,7 +70,7 @@ int32_t halt(int32_t status)
     kernel_stack_bottom += ASSIGNED_PCB_SIZE;
     setup_task_page(0); //temporary solution, need change later
 
-    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - 8;
+    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
     asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
     asm ("movl %0, %%eax" :: "r" (0) );
