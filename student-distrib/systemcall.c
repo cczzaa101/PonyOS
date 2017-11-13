@@ -8,6 +8,8 @@
 #define MAX_ARG_SIZE 4096
 #define USER_PROGRAM_ADDR 0x8048000
 #define ASSIGNED_PCB_SIZE 0x2000
+#define EXEC_INFO_BYTES 28
+#define MAX_PID 16
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
@@ -45,7 +47,7 @@ output: id if found, -1 if not found*/
 int32_t get_empty_pid()
 {
     int i;
-    for(i=0; i<16; i++)
+    for(i=0; i<MAX_PID; i++)
     {
         if( process_status[i] == 0 )
             return i;
@@ -97,9 +99,9 @@ int32_t execute (const uint8_t* command)
     if( read_dentry_by_name((unsigned char*)fname, &f_entry) == -1 ) return -1; //doesn't exist, return -1
 
     /* check if executable */
-    char executable_checking[4] = { 0x7f, 0x45, 0x4c, 0x46 };
+    char executable_checking[4] = { 0x7f, 0x45, 0x4c, 0x46 }; //4 magic num for executable
     char tempBuf[MAX_ARG_SIZE];
-    filesys_read_by_name((unsigned char*)fname, (unsigned char*)tempBuf, 28);
+    filesys_read_by_name((unsigned char*)fname, (unsigned char*)tempBuf, EXEC_INFO_BYTES);
     for(j=0; j<4; j++)
     {
         if(tempBuf[j]!= executable_checking[j])
