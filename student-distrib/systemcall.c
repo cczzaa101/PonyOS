@@ -185,7 +185,7 @@ int32_t open(const uint8_t* filename)
 }
 
 /*read a file into buffer
-input: fd = file descriptor, buf = buffer to fill, nbytes = length
+Input: fd = file descriptor, buf = buffer to fill, nbytes = length
 output: -1 if fail, bytes_read if successful, number of bytes read*/
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
@@ -240,6 +240,11 @@ int32_t do_nothing()
 {
     return 0;
 }
+
+
+/*close
+input: fd = file descriptor
+output: -1 if fail, 0 if success.*/ 
 
 int32_t close(int32_t fd)
 {
