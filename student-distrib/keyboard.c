@@ -15,13 +15,15 @@
 #define RELEASE(i) (i-128)
 #define MAX_KEY_IND 127
 #define TOTAL_KEY_NUM 128
+#define PRINT_LIM 1025
 int8_t pressed_key[TOTAL_KEY_NUM];
-unsigned char keyboard_buffer[TOTAL_KEY_NUM+1];
-unsigned char print_buffer[TOTAL_KEY_NUM+1];
+unsigned char keyboard_buffer[TOTAL_KEY_NUM+1] = "391OS> ";
+unsigned char print_buffer[PRINT_LIM];
 int cap_status;
 int cursor_ind;
 int hold_num;
 int terminal_read_ready;
+int need_nl = 0;
 /* keyboard initilization
  *
  * initialize the keyboard and let it begin generating interrupts
@@ -36,9 +38,10 @@ void keyboard_init()
     enable_irq(KEYBOARD_IRQ_NUM);
     memset(pressed_key, 0 , sizeof(pressed_key) );
     hold_num = 0;
-    cursor_ind = 0;
+    cursor_ind = strlen("391OS> ");
     terminal_read_ready = 0;
     cap_status = 0;
+    puts_scroll_refresh((char*)keyboard_buffer);
 }
 /* change by shift */
 unsigned char character_convert(unsigned char c)
@@ -69,7 +72,8 @@ void scancode_processing(unsigned char c)
         {
             clear();
             memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
-            cursor_ind = 0;
+            memcpy(keyboard_buffer, "391OS> ", strlen("391OS> "));
+            cursor_ind = strlen((char*)keyboard_buffer);
         }
         else if(scancodes_map[c]!=0)
         {
@@ -80,6 +84,7 @@ void scancode_processing(unsigned char c)
                     keyboard_buffer[i] = keyboard_buffer[i+1];
                 }
                 keyboard_buffer[MAX_KEY_IND] = character_convert(c);
+                memcpy(keyboard_buffer, "391OS> ", strlen("391OS> "));
             }
             else
             {
@@ -90,15 +95,24 @@ void scancode_processing(unsigned char c)
 
     if(c==SCANCODE_ENTER)
     {
-        memcpy(print_buffer, keyboard_buffer, sizeof(keyboard_buffer) );
+        memset(print_buffer,0, sizeof(print_buffer));
+        int shell_offset = strlen((char*)"391OS> ");
+        for(i=shell_offset; i< strlen( (char*) keyboard_buffer); i++)
+            print_buffer[i - shell_offset] = keyboard_buffer[i];
+        //memcpy(print_buffer, keyboard_buffer, sizeof(keyboard_buffer) );
+        puts_scroll_refresh((char*)keyboard_buffer);
+        //puts_scroll("\n");
+        need_nl = 1;
         memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
+        memcpy(keyboard_buffer, "391OS> ", strlen((char*)"391OS> "));
         terminal_read_ready = 1;
-        cursor_ind = 0;
+        cursor_ind = strlen((char*)keyboard_buffer);
     }
 
     if(c==SCANCODE_BACKSPACE)
     {
-        keyboard_buffer[--cursor_ind] = '\0';
+        if(cursor_ind!= strlen((char*)"391OS> "))
+            keyboard_buffer[--cursor_ind] = '\0';
         //cursor_ind--;
     }
     /*
@@ -130,6 +144,7 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
+    if(need_nl==1) { puts_scroll("\n"); need_nl = 0; }
     puts_scroll_refresh((char*)keyboard_buffer);
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
@@ -142,10 +157,17 @@ int32_t terminal_open()
 /*terminnal write function*/
 int32_t terminal_write(char* buf, int count)
 {
+    if(strncmp("391OS> ", buf, strlen( (char*) "391OS> ")) ==0 ) return count;
     int lim = sizeof(print_buffer);
     if(count<lim) lim = count;
     memcpy( print_buffer, buf, lim );
     print_buffer[lim] = 0;
+    if(print_buffer[ strlen( (char*) print_buffer) -1] !='\n')
+    {
+        print_buffer[ strlen( (char*) print_buffer) +1 ] = '\0';
+        print_buffer[ strlen( (char*) print_buffer) ] = '\n';
+    }
+    puts_scroll_refresh("");
     puts_scroll((char*)print_buffer);
     //putc_scroll('\n');
     return count;

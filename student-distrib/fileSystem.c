@@ -100,7 +100,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     {
         remaining_length = inode_table[inode].length - offset;
     }//invalid size
-
+    if(remaining_length <=0) return 0;
     block_ind_offset = offset / data_block_size;
     first_block_offset = offset % data_block_size;
 
@@ -142,7 +142,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         if(remaining_length<=0) break;
     }
 
-    return strlen(buf);
+    return strlen((char*)buf);
 }
 
 /*filesys read
