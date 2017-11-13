@@ -142,7 +142,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         if(remaining_length<=0) break;
     }
 
-    return strlen(buf);
+    return strlen((char*)buf);
 }
 
 /*filesys read
