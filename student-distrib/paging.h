@@ -4,4 +4,5 @@
 #include "lib.h"
 /* paging initialization */
 extern void paging_init();
+void setup_task_page(int ind);
 #endif
