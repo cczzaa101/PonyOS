@@ -144,3 +144,8 @@ int32_t rtc_write(int * freq, int size)
     sti();
     return 0;
 }
+
+int32_t rtc_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
+{
+    return rtc_write((int32_t * )buf,sizeof(int32_t));
+}
