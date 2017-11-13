@@ -1,12 +1,44 @@
 #include "lib.h"
 #include "systemcall.h"
+#include "keyboard.h"
 #define MAX_ARG_SIZE 4096
 #define USER_PROGRAM_ADDR 0x8048000
+#define ASSIGNED_PCB_SIZE 0x2000
 char arg_buf[MAX_ARG_SIZE];
+char process_status = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
+static int kernel_stack_bottom = (0x0800000)
+
+void pcb_init(int pid)
+{
+    int i;
+    kernel_stack_bottom -= ASSIGNED_PCB_SIZE
+    (pcb_t*) pcb = (pcb_t*) kernel_stack_bottom;
+    pcb->pid = pid;
+    (pcb->file_array)[0].operation = terminal_operation_table;
+    (pcb->file_array)[0].flags = 1;
+
+    for(i=2; i<FDT_SIZE; i++)
+    {
+        (pcb->file_array)[i].flags = 0;
+    }
+    pcb->parent = kernel_stack_bottom + ASSIGNED_PCB_SIZE;
+}
+
+int32_t get_empty_pid()
+{
+    int i;
+    for(i=0; i<16; i++)
+    {
+        if( process_status[i] == 0 )
+            return i;
+    }
+    return -1;
+}
+
 int32_t execute (const uint8_t* command)
 {
-    int i,j;
+    int i,j,cnt = 0;
     char fname[MAX_ARG_SIZE];
 
     for(i=0; i<strlen( (char*)command); i++)
@@ -28,7 +60,75 @@ int32_t execute (const uint8_t* command)
             return -1;
     }
 
+    /* load user_level program */
     if(load_executable( fname, (char*)USER_PROGRAM_ADDR )==-1) return -1;
 
+    /*make a note of entry point */
+    int32_t * tempBuf_int = (int32_t *) tempBuf;
+    int32_t entry_point = tempBuf[7]; //at bytes 23~27, i.e. 28/4 = 7 for int
+
+    /* copy argument */
+    for(;i<strlen( (char*)command); i++ )
+        arg_buf[cnt++] = command[i];
+    arg_buf[cnt] = '\0';
+    arg_available = 1;
+
+    /* assign PCB */
+    int pid = get_empty_pid();
+    process_status[pid] = 1;
+    pcb_init(pid);
+
+    /* assign page */
+    setup_task_page(pid);
+
+    return 0;
+}
+
+int32_t open(const uint8_t* filename)
+{
+    dentry_t temp;
+    int i;
+    if( read_dentry_by_name ( fname, &temp ) == -1 ) return -1;
+    (pcb_t*) pcb = (pcb_t*) kernel_stack_bottom;
+    for(i = 0; i<FDT_SIZE; i++)
+        if( (pcb->file_array)[i].flags == 0) break;
+
+    if(i==FDT_SIZE) return -1; //no available FDT!
+
+    (pcb->available)[i] = 1;
+    (pcb->file_array)[i].inode = temp.inode;
+    (pcb->file_array)[i].flags = 1;
+
+    (pcb->file_array)[i].file_position= 0;
+    if(pcb->fileType == RTC_TYPE)
+        (pcb->file_array)[i].operation = RTC_operation_table;
+    else if(pcb->fileType == REG_type)
+        (pcb->file_array)[i].operation = REG_operation_table;
+    else if(pcb->fileType == DIR_type)
+        (pcb->file_array)[i].operation = DIR_operation_table;
+
+    return 0;
+}
+
+int32_t read(int32_t fd, void* buf, int32_t nbytes)
+{
+    if(fd >= FDT_SIZE ) return -1;
+    else
+    {
+        (pcb_t*) pcb = kernel_stack_bottom;
+        int bytes_read = (pcb->file_array)[fd].operation[0](buf, nbytes);
+        if( bytes_read == -1 )
+            return -1;
+
+        (pcb->file_array)[fd].file_position += bytes_read;
+        return bytes_read;
+
+    }
+}
+int32_t getargs(uint8_t* buf, int32_t nbytes)
+{
+    if(buf == NULL ) return -1;
+    if(arg_available==0) return -1;
+    copy_to_user(buf, arg_buf, nbytes);
     return 0;
 }
