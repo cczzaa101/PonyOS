@@ -5,6 +5,7 @@
 #include "lib.h"
 #include "scancode.h"
 #include "keyboard.h"
+#include "systemcall.h"
 #define PASS 1
 #define FAIL 0
 #define KB_IDT 0x21
@@ -30,7 +31,7 @@ static inline void assertion_failure(){
 /* Checkpoint 1 tests */
 
 /* IDT Test - Example
- * 
+ *
  * Asserts that first 10 IDT entries are not NULL
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -44,31 +45,31 @@ int idt_test(){
 	int i;
 	int result = PASS;
 	for (i = 0; i < NUM_VEC; ++i){ //test all exceptions
-        
-		if ((idt[i].offset_15_00 == NULL) && 
+
+		if ((idt[i].offset_15_00 == NULL) &&
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
 		}
 	}
 /*
-    if ((idt[KB_IDT].offset_15_00 == NULL) && 
+    if ((idt[KB_IDT].offset_15_00 == NULL) &&
 			(idt[KB_IDT].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
 		}
-        
-    if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+
+    if ((idt[RTC_IDT].offset_15_00 == NULL) &&
 			(idt[RTC_IDT].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
-		}    
-*/        
+		}
+*/
 	return result;
 }
 
 /* de exception test
- * 
+ *
  * test divide by zero exception
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -84,7 +85,7 @@ int exception_test_de(){
 }
 
 /* more exception test
- * 
+ *
  * test any exception by changeing the interrupt id below
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -92,7 +93,7 @@ int exception_test_de(){
  * Coverage: Load IDT, IDT definition
  * Files: idt.c, idt.h
  */
- 
+
 int exception_test(){
     TEST_HEADER;
     asm volatile("int $2");
@@ -100,7 +101,7 @@ int exception_test(){
 }
 
 /* interruption test
- * 
+ *
  * test interruption from keyboard and rtc. comment return at line91 to enable
  * Inputs: c to discrete kb/rtc, arg for printing kb's characters
  * Outputs: None
@@ -125,7 +126,7 @@ void interruption_test(char c, unsigned char arg)
         }
         */
     }
-    
+
     /*
     if(c=='r') //rtc test
     {
@@ -135,7 +136,7 @@ void interruption_test(char c, unsigned char arg)
 }
 
 /* null pointer test
- * 
+ *
  * test dereferencing null points
  * Inputs: None
  * Outputs: 1
@@ -152,7 +153,7 @@ int null_test()
 }
 
 /* invalid pointer test
- * 
+ *
  * test dereferencing pointer out of kernel
  * Inputs: None
  * Outputs: 1
@@ -169,7 +170,7 @@ int out_of_bound_test()
 }
 
 /* valid pointer test
- * 
+ *
  * test dereferencing pointer within kernel
  * Inputs: None
  * Outputs: 1
@@ -195,12 +196,12 @@ int unknown_scancodes_test(){
 
 
 int read_input_test(){
-    
+
 	TEST_HEADER;
 	char str[150];
 	while(1)
     {
-        if(terminal_read(str)==0)
+        if(terminal_read(str,64)==0)
         {
             puts_scroll("Read from terminal:   ");
             puts_scroll(str);
@@ -209,7 +210,7 @@ int read_input_test(){
             }
         }
     }
-    
+
 	return 1;
 }
 
@@ -217,7 +218,7 @@ int read_input_test(){
 int write_strings_test(){
     cli();
 	TEST_HEADER;
-	char strshort[]="Sample Test";  
+	char strshort[]="Sample Test";
 	char strlong[]="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567  this part should be trunct!";
 	terminal_write(strshort, strlen(strshort) );
 	terminal_write(strlong, strlen(strlong) );
@@ -253,7 +254,7 @@ int read_entry_index_test(){
 int print_contents_test(){
 	TEST_HEADER;
     cli();
-	unsigned char buf[MAX_CONTENT_SIZE]; 
+	unsigned char buf[MAX_CONTENT_SIZE];
     int i=0;
     memset(buf,0,sizeof(buf));
 	unsigned char fname[] = "frame0.txt";
@@ -264,7 +265,7 @@ int print_contents_test(){
     {
         if(buf[i] == '\0') break;
         putc_scroll(buf[i]);
-    }   
+    }
     while(1);
     sti();
 	return 1;
@@ -273,19 +274,19 @@ int print_contents_test(){
 int rtc_test(){
 	TEST_HEADER;
 	int i;
-	int freq; 
-	
+	int freq;
+
 	//clear();
 	freq =2;
 	rtc_write(&freq, INT_SIZE);
-    
+
 	for (i=0;i<freq*RTC_BASE_COUNT;){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq =16;
 	rtc_write(&freq, INT_SIZE);
@@ -293,9 +294,9 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq = 128;
 	rtc_write(&freq, INT_SIZE);
@@ -303,9 +304,9 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq = 512;
 	rtc_write(&freq, INT_SIZE);
@@ -313,9 +314,9 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq = 1024;
 	rtc_write(&freq, INT_SIZE);
@@ -323,9 +324,9 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq = 2048;
 	rtc_write(&freq, INT_SIZE);
@@ -333,9 +334,9 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
 	clear();
 	freq = 666;
 	rtc_write(&freq, INT_SIZE);
@@ -343,14 +344,19 @@ int rtc_test(){
 		if (rtc_read() == 0){
 			putc_scroll('1');
             i++;
-		}		
+		}
 	}
-	
+
     return 1;
 }
 
 
 /* Checkpoint 3 tests */
+int execute_test()
+{
+    execute((unsigned char *)"shell");
+    return 1;
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -358,7 +364,7 @@ int rtc_test(){
 /* Test suite entry point */
 void launch_tests(){
     clear();
-    
+
     //terminal_read_test();
 	//TEST_OUTPUT("idt_test", idt_test());
     //TEST_OUTPUT("exception_test_de", exception_test_de());
@@ -368,7 +374,7 @@ void launch_tests(){
     //TEST_OUTPUT("exception_test", exception_test());
 
 	//Checkpoint 2
-    TEST_OUTPUT("read_input_test", read_input_test());
+    TEST_OUTPUT("execute_test", execute_test());
     //TEST_OUTPUT("write_strings_test", write_strings_test());
     //TEST_OUTPUT("print_list_of_files_test", print_list_of_files_test());
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
@@ -376,7 +382,3 @@ void launch_tests(){
     //TEST_OUTPUT("read_entry_index_test", read_entry_index_test());
 	// launch your tests here
 }
-
-
-
-

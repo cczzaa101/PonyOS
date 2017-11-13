@@ -9,7 +9,9 @@ extern void rtc_interrupt_handler();
 int32_t rtc_open();
 /* write function for rtc */
 int32_t rtc_write(int * freq, int size);
+int32_t rtc_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count);
 /* read functino for rtc */
 int32_t rtc_read();
+int32_t rtc_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count);
 /* close function for rtc */
 int32_t rtc_close();

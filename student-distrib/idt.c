@@ -6,7 +6,7 @@
 #define INTERRUPT_START_INDEX 32
 #define PIC_OFFSET 0x20
 
-/*print exception information*/ 
+/*print exception information*/
 /* exception handler
 input,output:None
 Effect:disable interrupts, clear screen and display exception info. Enter while(1)loop in the end.*/
@@ -272,7 +272,7 @@ void initialize_idt()
         if(i == SYSCALL_INDEX ) //system call's dpl should be 3
             idt[i].dpl = 3;
         else idt[i].dpl = 0; // exception level for default
-        
+
         idt[i].present = 1; // 1 for used interrupt, 0 for unused
         idt[i].seg_selector = KERNEL_CS;
         idt[i].reserved0 = 0; //storage segment, always 0
@@ -282,15 +282,15 @@ void initialize_idt()
         idt[i].reserved4 = 0;//unused bits
         if(i>=0x20)
         {
-            idt[i].reserved3 = 0; //use interrupt gate for interrupts       
+            idt[i].reserved3 = 0; //use interrupt gate for interrupts
         }
         else idt[i].reserved3 = 1; //use trap gate for exceptions
         SET_IDT_ENTRY(idt[i], general_handler_wrapper);
-        
+
     }
     SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
     SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_wrapper);  //rtc at irq 8
-    
+
     /* combined idt entries with exception handler */
 	SET_IDT_ENTRY(idt[0], exception_de);
     SET_IDT_ENTRY(idt[1], exception_db);
@@ -312,4 +312,7 @@ void initialize_idt()
     SET_IDT_ENTRY(idt[17], exception_ac);
     SET_IDT_ENTRY(idt[18], exception_mc);
     SET_IDT_ENTRY(idt[19], exception_xf);
+
+    //general_handler_wrapper();
+    SET_IDT_ENTRY(idt[SYSCALL_INDEX], general_handler_wrapper );
 }
