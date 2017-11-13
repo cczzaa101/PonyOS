@@ -176,6 +176,11 @@ int32_t filesys_write()
     return -1;
 }
 
+int32_t filesys_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
+{
+    return filesys_write();
+}
+
 int32_t filesys_open()
 {
     return 0;
@@ -203,6 +208,11 @@ int32_t dir_write()
     return -1;
 }
 
+int32_t dir_write_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
+{
+    return dir_write(buf);
+}
+
 /*directory read
  Input: char * buf = the buffer to read the name
  Output: 0 if there is file left to read name, -1 if no file left
@@ -216,7 +226,12 @@ int32_t dir_read(char * buf)
     memcpy( buf, temp.fileName, sizeof(temp.fileName) );
     buf[max_name_length] = '\0';
     current_dir_read_index++;
-    return 0;
+    return strlen(buf);
+}
+
+int32_t dir_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t count)
+{
+    return dir_read(buf);
 }
 
 int32_t load_executable(char * fname, char* dest)
