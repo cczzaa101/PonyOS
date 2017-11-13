@@ -184,6 +184,9 @@ void putc(uint8_t c) {
     }
 }
 
+/*shift up
+input none
+output none*/
 void shift_up()
 {
     int x,y;
