@@ -198,7 +198,6 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     if(fd >= FDT_SIZE ) return -1;
     else
     {
-        memset(buf,0,sizeof(buf));
         pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
         int offset = (pcb->file_array)[fd].file_position;
         int inode = (pcb->file_array)[fd].inode;
