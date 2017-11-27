@@ -92,7 +92,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t *dentry)
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
     int i, block_ind_offset, first_block_offset;
-    int remaining_length = length, copied_length;
+    int remaining_length = length, copied_length, copied_length_total = 0;
     uint8_t* current_buf_addr = buf;
 
     if( (inode<0) || (inode>=num_inodes) ) return -1; //invalid index
@@ -113,6 +113,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             else
                 copied_length = remaining_length;
 
+            copied_length_total += copied_length;
             memcpy(
                         current_buf_addr,
                         (uint8_t*)( data_block( inode_table[inode].data[i] ) + first_block_offset),
@@ -130,6 +131,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             else
                 copied_length = remaining_length;
 
+            copied_length_total += copied_length;    
             memcpy(
                         current_buf_addr,
                         (uint8_t*)( data_block( inode_table[inode].data[i] ) ),
@@ -142,7 +144,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         if(remaining_length<=0) break;
     }
 
-    return strlen((char*)buf);
+    return copied_length_total;
 }
 
 /*filesys read
@@ -235,7 +237,7 @@ int32_t dir_read_wrapper(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t
     return dir_read((char*)buf);
 }
 
-/*load executable 
+/*load executable
 input: fname = file name, dest: destination
 output: 0 if successful, -1 if fail*/
 int32_t load_executable(char * fname, char* dest)
