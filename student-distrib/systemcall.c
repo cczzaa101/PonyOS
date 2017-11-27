@@ -265,6 +265,6 @@ int32_t vidmap(uint8_t **screenstart)
 {
     if(screenstart == NULL) return -1; //check null input
     if( ( (int)(screenstart) < USER_PAGE_START ) || ( (int)(screenstart) >= USER_PAGE_END) ) return -1; //check memory range
-    *screenstart = (uint8_t*) (VIDEO_USER+0x100);
+    *screenstart = (uint8_t*) (VIDEO_USER);
     return 0;
 }
