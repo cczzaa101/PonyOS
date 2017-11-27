@@ -8,7 +8,7 @@
 #define RTC_IRQ_NUM 0x08
 /* credit to http://wiki.osdev.org/RTC */
 
-static int next_interrupt = 0;
+volatile int next_interrupt = 0;
 /*Initialize RTC
 input,output:none
 Effects: enable rtc pulsing at irq 8
@@ -108,7 +108,7 @@ side effects: should block until the next interrupt, then return 0.
 */
 int32_t rtc_read()
 {
-    if(next_interrupt == 0 ) return -1;
+    while(next_interrupt == 0 ) {};
     next_interrupt = 0;
     return 0;
 }
