@@ -110,4 +110,4 @@ back_to_user_mode:
 
 system_call_jumptable:
     .long do_nothing
-    .long halt, execute, read, write, open, close, getargs
+    .long halt, execute, read, write, open, close, getargs,vidmap

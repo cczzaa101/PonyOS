@@ -5,8 +5,11 @@
 #include "x86_desc.h"
 #include "interrupt_handler_wrapper.h"
 #include "paging.h"
+#define VIDEO       0xB8000
 #define MAX_ARG_SIZE 4096
 #define USER_PROGRAM_ADDR 0x8048000
+#define USER_PAGE_START 0x8000000
+#define USER_PAGE_END 0x8400000
 #define ASSIGNED_PCB_SIZE 0x2000
 #define EXEC_INFO_BYTES 28
 #define MAX_PID 16
@@ -247,7 +250,7 @@ int32_t do_nothing()
 
 /*close
 input: fd = file descriptor
-output: -1 if fail, 0 if success.*/ 
+output: -1 if fail, 0 if success.*/
 
 int32_t close(int32_t fd)
 {
@@ -255,5 +258,13 @@ int32_t close(int32_t fd)
     pcb_t* pcb;
     pcb = (pcb_t*) kernel_stack_bottom;
     (pcb->file_array)[fd].flags = 0;
+    return 0;
+}
+
+int32_t vidmap(uint8_t **screenstart)
+{
+    if(screenstart == NULL) return -1; //check null input
+    if( ( (int)(*screenstart) < USER_PAGE_START ) || ( (int)(*screenstart) >= USER_PAGE_END) ) return -1; //check memory range
+    *screenstart = (uint8_t*) VIDEO;
     return 0;
 }

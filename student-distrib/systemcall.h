@@ -30,5 +30,6 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes);
 int32_t getargs(uint8_t* buf, int32_t nbytes);
 int32_t do_nothing();
 int32_t close();
+int32_t vidmap(uint8_t **sreenstart);
 
 #endif
