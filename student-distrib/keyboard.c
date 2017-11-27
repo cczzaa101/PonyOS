@@ -159,6 +159,7 @@ int32_t terminal_open()
 input: buf = the buffer to write from, count = length*/
 int32_t terminal_write(char* buf, int count)
 {
+    cli();
     if(strncmp("391OS> ", buf, strlen( (char*) "391OS> ")) ==0 ) return count;
     int lim = sizeof(print_buffer);
     if(count<lim) lim = count;
@@ -171,6 +172,7 @@ int32_t terminal_write(char* buf, int count)
     }
     puts_scroll_refresh("");
     puts_scroll((char*)print_buffer);
+    sti();
     //putc_scroll('\n');
     return count;
 }
