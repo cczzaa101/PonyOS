@@ -61,7 +61,7 @@ general_handler_wrapper:
     pushl %ebx
 
     /* validity check, should not greater than 7 */
-    cmpl $7, %eax
+    cmpl $8, %eax
     jg invalid_eax
 
     call *system_call_jumptable(,%eax,4)

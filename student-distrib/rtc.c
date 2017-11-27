@@ -108,6 +108,7 @@ side effects: should block until the next interrupt, then return 0.
 */
 int32_t rtc_read()
 {
+    sti();
     while(next_interrupt == 0 ) {};
     next_interrupt = 0;
     return 0;

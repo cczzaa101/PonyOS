@@ -204,6 +204,8 @@ typedef union page_table_t {
 page_directory_t page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))); //aligned by 4k
 /* page table */
 page_table_t page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096))); //aligned by 4k
+/* user level page table */
+page_table_t user_video_page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096))); //aligned by 4k
 
 /* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];

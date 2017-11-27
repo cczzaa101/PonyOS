@@ -7,6 +7,7 @@
 #define SINGLE_PAGE_DIR_OFFSET 1024
 #define USER_LEVEL_OFFSET  (2*1024)
 #define USER_SPACE_START 32
+#define USER_VIDEO_START 40
 /*Initialize page table's entry to all 0
  *Input: ind = the index of entry
  *output: none
@@ -25,6 +26,26 @@ void page_table_init(int ind)
     t(ind). global     =0;
     t(ind). avail      =0;
     t(ind). page_address=0;
+}
+
+/*Initialize user video page table's entry to all 0
+ *Input: ind = the index of entry
+ *output: none
+ */
+void user_video_page_table_init(int ind)
+{
+    #define vt(i) user_video_page_table[i]
+    vt(ind).present = 0;
+    vt(ind).read_write =0;
+    vt(ind).user_supervisor=0;
+    vt(ind). write_through =0;
+    vt(ind). cache_disabled=0;
+    vt(ind). accessed   =0;
+    vt(ind). dirty      =0;
+    vt(ind). zero       =0;
+    vt(ind). global     =0;
+    vt(ind). avail      =0;
+    vt(ind). page_address=0;
 }
 
 
@@ -48,6 +69,28 @@ void page_directory_init(int ind)
     d(ind). aligned_address=0;
 }
 
+void setupt_video_user_level()
+{
+    /* setup user video page table*/
+    int i;
+    for(i=0; i< PAGE_TABLE_SIZE; i++)
+    {
+        //first_page_table[i] = (i * 0x1000) | 3;
+        // attributes: supervisor level, read/write, present.
+        user_video_page_table_init(i);
+        if(i!=0) user_video_page_table[i].present = 1; //reserved for null pointer
+        user_video_page_table[i].user_supervisor = 1;
+        user_video_page_table[i].read_write = 1;
+        user_video_page_table[i].page_address = i;
+    }
+
+    page_directory_init(USER_VIDEO_START);
+    page_dir[USER_VIDEO_START].present = 1;
+    page_dir[USER_VIDEO_START].user_supervisor = 1;
+    page_dir[USER_VIDEO_START].size = 0; //4kb page
+    page_dir[USER_VIDEO_START].aligned_address = ((int)user_video_page_table)>>12; //clear the last 12 bits to ensure alignment
+
+}
 /*initialize paging
 input, output: None
 effets: initialize kernel and first page directory entry, also the first page table
@@ -88,11 +131,15 @@ void paging_init()
     kernel_dir.aligned_address = 1024; //start at 4mb = 1024*4kb
     kernel_dir.size = 1; //4mb page
     kernel_dir.user_supervisor = 1;
+
+    setupt_video_user_level();
+
     //1. page_dir address to cr3
     //2. set paging and protection bits of cr0
     //3. set cr4 to enable 4bits
     //0x00000010 for enabling 4mb size
     //0x80000001 for enabling protected mode and paging mode
+
     __asm__ ( "leal page_dir,%eax;"
               "movl %eax,%cr3;"
 

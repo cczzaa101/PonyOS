@@ -5,7 +5,7 @@
 #include "x86_desc.h"
 #include "interrupt_handler_wrapper.h"
 #include "paging.h"
-#define VIDEO       0xB8000
+#define VIDEO_USER       (0xB8000+0xA000000) //user leve remapping
 #define MAX_ARG_SIZE 4096
 #define USER_PROGRAM_ADDR 0x8048000
 #define USER_PAGE_START 0x8000000
@@ -264,7 +264,7 @@ int32_t close(int32_t fd)
 int32_t vidmap(uint8_t **screenstart)
 {
     if(screenstart == NULL) return -1; //check null input
-    if( ( (int)(*screenstart) < USER_PAGE_START ) || ( (int)(*screenstart) >= USER_PAGE_END) ) return -1; //check memory range
-    *screenstart = (uint8_t*) VIDEO;
+    if( ( (int)(screenstart) < USER_PAGE_START ) || ( (int)(screenstart) >= USER_PAGE_END) ) return -1; //check memory range
+    *screenstart = (uint8_t*) (VIDEO_USER+0x100);
     return 0;
 }
