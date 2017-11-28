@@ -354,7 +354,10 @@ int rtc_test(){
 /* Checkpoint 3 tests */
 int execute_test()
 {
-    execute((unsigned char *)"shell");
+    while(1)
+    {
+        execute((unsigned char *)"shell");
+    }
     return 1;
 }
 /* Checkpoint 4 tests */
@@ -380,7 +383,7 @@ void launch_tests(){
     //TEST_OUTPUT("print_contents_tests", print_contents_test());
     //TEST_OUTPUT("rtc_test", rtc_test());
     //TEST_OUTPUT("read_entry_index_test", read_entry_index_test());
-	
+
 	//Checkpoint 3
  	//TEST_OUTPUT("run_the_shell_test", run_the_shell_test());
  	//TEST_OUTPUT("halt_the_shell_test", halt_the_shell_test());

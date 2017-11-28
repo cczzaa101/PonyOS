@@ -12,10 +12,10 @@
 #define USER_PAGE_END 0x8400000
 #define ASSIGNED_PCB_SIZE 0x2000
 #define EXEC_INFO_BYTES 28
-#define MAX_PID 16
+#define MAX_PID 32
 #define MEM_DEFENSE_SIZE 8
 char arg_buf[MAX_ARG_SIZE];
-char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
 static int kernel_stack_bottom = ((0x0800000)-(0x2000));
 static int entry_point;
@@ -71,7 +71,7 @@ int32_t halt(int32_t status)
 
     process_status[ pcb->pid ] = 0;
     kernel_stack_bottom += ASSIGNED_PCB_SIZE;
-    setup_task_page(0); //temporary solution, need change later
+    setup_task_page( ((pcb_t*)(pcb->parent)) -> pid ); //temporary solution, need change later
 
     tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
