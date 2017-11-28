@@ -194,19 +194,19 @@ void shift_up()
     {
         for(x=0; x< NUM_COLS; x++)
         {
-            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = *(video_mem + ((NUM_COLS * (y+1) + x) << 1));           
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = *(video_mem + ((NUM_COLS * (y+1) + x) << 1));
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
         }
     }
-    
+
     y = NUM_ROWS-1;
-    
+
     for(x=0; x< NUM_COLS; x++)
     {
-        *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';           
+        *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
         *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
     }
-    
+
     screen_y = NUM_ROWS-1;
     screen_x = 0;
     screen_y_before_input = screen_y-1;
@@ -220,14 +220,14 @@ void putc_scroll(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
-        if(screen_y == NUM_ROWS )
+        while(screen_y >= NUM_ROWS )
             shift_up();
     } else {
-        if(screen_y == NUM_ROWS) 
+        while(screen_y >= NUM_ROWS)
             shift_up();
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;     
+        screen_x++;
         screen_y = screen_y + screen_x/NUM_COLS;
         screen_x %= NUM_COLS;
     }
@@ -238,7 +238,7 @@ void putc_scroll(uint8_t c) {
 void update_cursor(int x, int y)
 {
 	uint16_t pos = y * NUM_COLS + x;
- 
+
 	outb(0x0F,0x3D4);
 	outb((uint8_t) (pos & 0xFF), 0x3D5);
 	outb(0x0E, 0x3D4);
@@ -254,11 +254,13 @@ void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
  *    Function: Output a string to the console */
-int32_t puts_scroll(int8_t* s) {
+int32_t puts_scroll(int8_t* s, int32_t len) {
     register int32_t index = 0;
-    while (s[index] != '\0') {
+    int lim = len;
+    if(len==-1) lim = strlen( (char*)s );
+    for(; index<lim; index ++) {
         putc_scroll(s[index]);
-        index++;
+        //index++;
     }
     update_cursor(screen_x, screen_y);
     screen_x_before_input = screen_x;
@@ -281,7 +283,7 @@ int32_t puts_scroll_refresh(int8_t* s) {
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
         }
     }
-    
+
     screen_x = 0;
     screen_y = screen_y_before_input;
     while (s[index] != '\0') {
