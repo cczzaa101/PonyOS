@@ -195,10 +195,11 @@ Input: fd = file descriptor, buf = buffer to fill, nbytes = length
 output: -1 if fail, bytes_read if successful, number of bytes read*/
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
-    if(fd >= FDT_SIZE ) return -1;
+    if( (fd >= FDT_SIZE) || (fd<0) || (fd==1)  ) return -1;
     else
     {
         pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+        if((pcb->file_array)[fd].flags==0) return -1;
         int offset = (pcb->file_array)[fd].file_position;
         int inode = (pcb->file_array)[fd].inode;
         int bytes_read = (pcb->file_array)[fd].read(inode, offset, buf, nbytes);
@@ -216,10 +217,11 @@ input: fd = file descriptor, buf = buffer to write from, nbytes = length
 output: -1 if fail, bytes_read if successful, number of bytes write*/
 int32_t write(int32_t fd, void* buf, int32_t nbytes)
 {
-    if(fd >= FDT_SIZE ) return -1;
+    if( (fd >= FDT_SIZE) || (fd<0) || (fd==0) ) return -1;
     else
     {
         pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+        if((pcb->file_array)[fd].flags==0) return -1;
         int offset = 0;
         int inode = (pcb->file_array)[fd].inode;
         int bytes_written = (pcb->file_array)[fd].write(inode, offset, buf, nbytes);
@@ -253,9 +255,9 @@ output: -1 if fail, 0 if success.*/
 
 int32_t close(int32_t fd)
 {
-    if(fd >= FDT_SIZE ) return -1;
     pcb_t* pcb;
     pcb = (pcb_t*) kernel_stack_bottom;
+    if( (fd >= FDT_SIZE) || (fd<=1) || ((pcb->file_array)[fd].flags==0) ) return -1;
     (pcb->file_array)[fd].flags = 0;
     return 0;
 }

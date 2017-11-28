@@ -60,16 +60,18 @@ general_handler_wrapper:
     pushl %ecx
     pushl %ebx
 
-    /* validity check, should not greater than 7 */
+    /* validity check, should not greater than 8(vidmap) */
     cmpl $8, %eax
     jg invalid_eax
+
+    cmpl $0, %eax
+    jle invalid_eax
 
     call *system_call_jumptable(,%eax,4)
     jmp valid_eax
 
 invalid_eax:
-    movl $1, %eax
-    call *system_call_jumptable(,%eax,4)
+    movl $-1, %eax
 
 valid_eax:
     popl %ebx
