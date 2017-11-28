@@ -69,6 +69,9 @@ void page_directory_init(int ind)
     d(ind). aligned_address=0;
 }
 
+//set up video paging 
+//input,output£ºnone
+ 
 void setupt_video_user_level()
 {
     /* setup user video page table*/

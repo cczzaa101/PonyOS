@@ -262,6 +262,9 @@ int32_t close(int32_t fd)
     return 0;
 }
 
+//set up vidmap start address
+//input: screenstart = a pointer to the starting address of the viemap
+//output: -1 if fail, 0 if success.
 int32_t vidmap(uint8_t **screenstart)
 {
     if(screenstart == NULL) return -1; //check null input
