@@ -6,6 +6,7 @@
 #define RTC_DATA_PORT 0x71
 #define NMI_MASK 0x80
 #define RTC_IRQ_NUM 0x08
+#define MAX_FREQ 1024
 /* credit to http://wiki.osdev.org/RTC */
 
 volatile int next_interrupt = 0;
@@ -132,7 +133,7 @@ int32_t rtc_write(int * freq, int size)
     if(size!= sizeof(int)) { sti(); return -1; }
     int temp = *freq, flag = 0;
     if(temp<=0) { sti(); return -1; }
-    if(temp>1024) temp = 1024;
+    if(temp>MAX_FREQ) temp = MAX_FREQ;
 
     while(temp !=0)
     {
