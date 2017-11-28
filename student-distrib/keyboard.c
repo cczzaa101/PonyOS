@@ -15,7 +15,7 @@
 #define RELEASE(i) (i-128)
 #define MAX_KEY_IND 127
 #define TOTAL_KEY_NUM 128
-#define PRINT_LIM 1025
+#define PRINT_LIM 1025*2
 int8_t pressed_key[TOTAL_KEY_NUM];
 unsigned char keyboard_buffer[TOTAL_KEY_NUM+1] = "391OS> ";
 unsigned char print_buffer[PRINT_LIM];
@@ -145,7 +145,7 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
-    if(need_nl==1) { puts_scroll("\n"); need_nl = 0; }
+    if(need_nl==1) { puts_scroll("\n",-1); need_nl = 0; }
     puts_scroll_refresh((char*)keyboard_buffer);
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
@@ -165,13 +165,14 @@ int32_t terminal_write(char* buf, int count)
     if(count<lim) lim = count;
     memcpy( print_buffer, buf, lim );
     print_buffer[lim] = 0;
-    if(print_buffer[ strlen( (char*) print_buffer) -1] !='\n')
+    if(print_buffer[ lim-1 ] !='\n')
     {
-        print_buffer[ strlen( (char*) print_buffer) +1 ] = '\0';
-        print_buffer[ strlen( (char*) print_buffer) ] = '\n';
+        print_buffer[ lim  ] = '\n';
+        print_buffer[ lim+1 ] = 0;
+        lim++;
     }
     puts_scroll_refresh("");
-    puts_scroll((char*)print_buffer);
+    puts_scroll((char*)print_buffer,lim);
     sti();
     //putc_scroll('\n');
     return count;

@@ -203,8 +203,8 @@ int read_input_test(){
     {
         if(terminal_read(str,64)==0)
         {
-            puts_scroll("Read from terminal:   ");
-            puts_scroll(str);
+            puts_scroll("Read from terminal:   ",-1);
+            puts_scroll(str,-1);
             if (strlen(str) > MAX_CONTENT_SIZE){
                 return FAIL;
             }
