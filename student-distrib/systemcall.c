@@ -64,9 +64,7 @@ void pcb_init(int pid)
     {
         (pcb->file_array)[i].flags = 0;
     }
-    pcb->parent = (int32_t*) get_current_pcb();
-    ((pcb_t*)(pcb->parent)) ->child = (int32_t*) pcb;
-    pcb->child = NULL;
+
 }
 
 /*get empty process id
@@ -107,12 +105,12 @@ int32_t halt(int32_t status)
 int32_t execute(const uint8_t* command)
 {
     pcb_t* pcb = get_current_pcb();
-    return execute_with_terminal_num(command, pcb->terminal);
+    return execute_with_terminal_num(command, pcb->terminal, 0 );
 }
 /*execute with filename and argument
  input: command
  output: 0 if succeful, -1 if fail*/
-int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num)
+int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int is_terminal)
 {
     if(command == NULL) return -1;
 
@@ -165,11 +163,19 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num)
 
 
     /* refresh tss */
-    tss.esp0 = get_kernel_stack_bottom(pid) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
+
 
     pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
-    pcb->current_ebp = pcb->current_esp = tss.esp0;
+
     pcb->terminal = terminal_num;
+    set_active_terminal(terminal_num);
+    pcb->parent = (int32_t*) get_current_pcb();
+    if(is_terminal==0)
+        ((pcb_t*)(pcb->parent)) ->child = (int32_t*) pcb;
+
+    tss.esp0 = get_kernel_stack_bottom(pid) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
+    pcb->current_ebp = pcb->current_esp = tss.esp0;
+
     current_pid = pid;
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
     asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
@@ -302,4 +308,50 @@ int32_t vidmap(uint8_t **screenstart)
     if( ( (int)(screenstart) < USER_PAGE_START ) || ( (int)(screenstart) >= USER_PAGE_END) ) return -1; //check memory range
     *screenstart = (uint8_t*) (VIDEO_USER);
     return 0;
+}
+
+void initialize_terminals()
+{
+    int t_id = 2;
+    for(;t_id>=0; t_id--)
+    {
+
+        /* assign PCB */
+        int pid = get_empty_pid();
+        process_status[pid] = 1;
+        total_running_process++;
+        pcb_init(pid);
+
+        /* assign page */
+        setup_task_page(pid);
+
+        /* load user_level program */
+        if(load_executable( "shell", (char*)USER_PROGRAM_ADDR )==-1) return;
+
+        /*make a note of entry point */
+        char tempBuf[MAX_ARG_SIZE];
+        filesys_read_by_name((unsigned char*)"shell", (unsigned char*)tempBuf, EXEC_INFO_BYTES);
+        int32_t * tempBuf_int = (int32_t *) tempBuf;
+        entry_point = tempBuf_int[6]; //at bytes 23~27, i.e. 28/4 = 7 for int
+
+
+        /* refresh tss */
+
+        pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
+        tss.esp0 = get_kernel_stack_bottom(pid) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
+        pcb->current_ebp = pcb->current_esp = tss.esp0;
+        pcb->terminal = t_id;
+        pcb->child = NULL;
+
+        current_pid = pid;
+        asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
+        asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
+        if(t_id==0)
+        {
+            asm volatile("movl %0, %%ebp" :: "r" (tss.esp0) );
+            asm volatile("movl %0, %%esp" :: "r" (tss.esp0) );
+            back_to_user_mode(entry_point);
+        }
+    }
+
 }

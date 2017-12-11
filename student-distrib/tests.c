@@ -356,7 +356,7 @@ int execute_test()
 {
     while(1)
     {
-        execute((unsigned char *)"shell");
+        execute_with_terminal_num((unsigned char *)"shell",0,1);
     }
     return 1;
 }

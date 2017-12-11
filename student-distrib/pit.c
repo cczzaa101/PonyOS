@@ -11,6 +11,7 @@
 #define PIT_COMMAND_PORT 0x43
 #define PIT_0_PORT 0x40
 #define PIT_IRQ_NUM 0x0
+//volatile int terminal_2_running = 0, terminal_3_running = 0;
 /*
     credit to http://www.osdever.net/bkerndev/Docs/pit.html
 */
@@ -35,6 +36,22 @@ void pit_handler()
     cli();
     send_eoi(PIT_IRQ_NUM);
     if(get_running_process_num()==0) return;
+    /*
+    if(!terminal_2_running)
+    {
+        terminal_2_running = 1;
+        execute_with_terminal_num((unsigned char*)"shell", 1, 1);
+        return;
+    }
+
+    if(!terminal_3_running)
+    {
+        terminal_3_running = 1;
+        execute_with_terminal_num((unsigned char*)"shell", 2, 1);
+        return;
+    }
+    */
+    if(get_running_process_num()<=1) return;
     //putc_scroll('t');
     pcb_t* pcb;
     int i = next_pid( get_current_pcb()->pid );
@@ -52,9 +69,9 @@ void pit_handler()
         asm volatile("movl %%esp, %0" : "=r" (get_current_pcb()->current_esp) );
         asm volatile("movl %%ebp, %0" : "=r" (get_current_pcb()->current_ebp) );
         setup_task_page( i );
-        tss.esp0 = get_kernel_stack_bottom(i) - ASSIGNED_PCB_SIZE + MEM_DEFENSE_SIZE;
+        tss.esp0 = get_kernel_stack_bottom(i) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
         set_current_pid(i);
-
+        set_active_terminal(pcb->terminal);
         asm ("movl %0, %%esp" :: "r" (pcb->current_esp) );
         asm ("movl %0, %%ebp" :: "r" (pcb->current_ebp) );
 

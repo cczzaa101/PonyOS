@@ -36,7 +36,7 @@ typedef struct{
 } pcb_t;
 
 int32_t execute (const uint8_t* command);
-int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num);
+int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int is_terminal);
 int32_t halt(int32_t status);
 int32_t open(const uint8_t* filename);
 int32_t read(int32_t fd, void* buf, int32_t nbytes);
@@ -45,6 +45,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes);
 int32_t do_nothing();
 int32_t close();
 int32_t vidmap(uint8_t **sreenstart);
+void initialize_terminals();
 pcb_t* get_current_pcb();
 int get_kernel_stack_bottom(int pid);
 int is_running(int pid);

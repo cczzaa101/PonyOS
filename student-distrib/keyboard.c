@@ -3,6 +3,7 @@
 #include "keyboard.h"
 #include "scancode.h"
 #include "tests.h"
+#include "systemcall.h"
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_COMMAND_PORT 0x64
@@ -23,9 +24,9 @@ unsigned char print_buffer[TERMINAL_NUM][PRINT_LIM];
 int cap_status;
 int cursor_ind[TERMINAL_NUM];
 int hold_num;
-int terminal_read_ready;
+int terminal_read_ready[TERMINAL_NUM];
 int need_nl = 0;
-
+volatile int terminal_2_running = 0, terminal_3_running = 0;
 /* keyboard initilization
  *
  * initialize the keyboard and let it begin generating interrupts
@@ -41,8 +42,8 @@ void keyboard_init()
     memset(pressed_key, 0 , sizeof(pressed_key) );
     memset(keyboard_buffer, 0 , sizeof(keyboard_buffer));
     memset(cursor_ind, 0 , sizeof(cursor_ind));
+    memset(terminal_read_ready, 0,  sizeof(terminal_read_ready));
     hold_num = 0;
-    terminal_read_ready = 0;
     cap_status = 0;
 }
 /* change by shift */
@@ -82,10 +83,29 @@ void scancode_processing(unsigned char c)
             if(c == SCANCODE_F1)
                 set_disiplay_terminal(0);
             if(c == SCANCODE_F2)
+            {
                 set_disiplay_terminal(1);
+
+                if(!terminal_2_running)
+                {
+                    terminal_2_running = 1;
+                    //sti();
+                    execute_with_terminal_num((unsigned char *)"shell",1,1);
+                }
+
+            }
             if(c == SCANCODE_F3)
+            {
                 set_disiplay_terminal(2);
 
+                if(!terminal_3_running)
+                {
+                    terminal_3_running = 1;
+                    //sti();
+                    execute_with_terminal_num((unsigned char *)"shell",2,1);
+                }
+
+            }
             //set_active_terminal( get_active_terminal() );
         }
         else if(scancodes_map[c]!=0)
@@ -107,7 +127,7 @@ void scancode_processing(unsigned char c)
         memcpy(print_buffer[get_display_terminal()], keyboard_buffer[get_display_terminal()], sizeof(keyboard_buffer[get_display_terminal()]));
         //putc_scroll('\n');
         memset(keyboard_buffer[get_display_terminal()], 0 , sizeof(keyboard_buffer[get_display_terminal()]) );
-        terminal_read_ready = 1;
+        terminal_read_ready[get_display_terminal()] = 1;
         cursor_ind[get_display_terminal()] = 0;
     }
 
@@ -140,6 +160,7 @@ void scancode_processing(unsigned char c)
 void keyboard_interrupt_handler()
 {
     cli(); //disable interrupts
+    send_eoi(KEYBOARD_IRQ_NUM);
     //clear();
     unsigned char placeholder;
     while( (inb(KEYBOARD_STATUS_PORT)&0x1)>0 ) //use 0x1 to check the last bit, whether the buffer is still full.
@@ -149,7 +170,6 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
-    send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
 }
 /*terminnal open function*/
@@ -188,11 +208,11 @@ int32_t terminal_close()
 int32_t terminal_read(char* buf, int count)
 {
     sti();
-    while(terminal_read_ready!=1)
+    while(terminal_read_ready[get_active_terminal()]!=1)
     {
     }
     memcpy(buf, print_buffer[get_active_terminal()], count);
-    terminal_read_ready = 0;
+    terminal_read_ready[get_active_terminal()] = 0;
     return strlen(buf);
 }
 
