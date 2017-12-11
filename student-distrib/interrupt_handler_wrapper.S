@@ -19,6 +19,7 @@ pit_handler_wrapper:
     cld
     call pit_handler
     popa
+    sti
     iret
 
 /*

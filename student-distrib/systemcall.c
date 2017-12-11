@@ -5,21 +5,28 @@
 #include "x86_desc.h"
 #include "interrupt_handler_wrapper.h"
 #include "paging.h"
-#define VIDEO_USER       (0xB8000+0xA000000) //user leve remapping
-#define MAX_ARG_SIZE 4096
-#define USER_PROGRAM_ADDR 0x8048000
-#define USER_PAGE_START 0x8000000
-#define USER_PAGE_END 0x8400000
-#define ASSIGNED_PCB_SIZE 0x2000
-#define EXEC_INFO_BYTES 28
-#define MAX_PID 32
-#define MEM_DEFENSE_SIZE 8
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
-int current_pid=0;
+static int current_pid=0;
+static int total_running_process = 0;
 //static int kernel_stack_bottom = ((0x0800000)-(0x2000));
 static int entry_point;
+
+int get_running_process_num()
+{
+    return total_running_process;
+}
+
+void set_current_pid(int pid)
+{
+    current_pid = pid;
+}
+
+int is_running(int pid)
+{
+    return process_status[pid];
+}
 
 int get_kernel_stack_bottom(int pid)
 {
@@ -58,6 +65,8 @@ void pcb_init(int pid)
         (pcb->file_array)[i].flags = 0;
     }
     pcb->parent = (int32_t*) get_current_pcb();
+    ((pcb_t*)(pcb->parent)) ->child = (int32_t*) pcb;
+    pcb->child = NULL;
 }
 
 /*get empty process id
@@ -80,10 +89,11 @@ output: 0 if successful*/
 int32_t halt(int32_t status)
 {
     pcb_t* pcb = get_current_pcb();
-
+    total_running_process--;
     process_status[ pcb->pid ] = 0;
     setup_task_page( ((pcb_t*)(pcb->parent)) -> pid ); //temporary solution, need change later
     current_pid = ((pcb_t*)(pcb->parent)) -> pid ;
+    ((pcb_t*)(pcb->parent)) -> child = NULL ;
     tss.esp0 = (int)(pcb->parent) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
     asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
@@ -135,6 +145,7 @@ int32_t execute (const uint8_t* command)
     int pid = get_empty_pid();
     if(pid==-1) return -1;
     process_status[pid] = 1;
+    total_running_process++;
     pcb_init(pid);
 
     /* assign page */
@@ -152,6 +163,7 @@ int32_t execute (const uint8_t* command)
     tss.esp0 = get_kernel_stack_bottom(pid) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
 
     pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
+    pcb->current_ebp = pcb->current_esp = tss.esp0;
     current_pid = pid;
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
     asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );

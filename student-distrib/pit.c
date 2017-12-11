@@ -1,6 +1,8 @@
 #include "pit.h"
 #include "lib.h"
 #include "i8259.h"
+#include "systemcall.h"
+#include "paging.h"
 #define lowbit_shift 8
 #define lowbit_mask 0xFF
 #define PIT_BASE_FREQ 1193180
@@ -23,10 +25,40 @@ void pit_init()
     sti();
 }
 
+int32_t next_pid(int pid)
+{
+    return (pid+1)%MAX_PID;
+}
+
 void pit_handler()
 {
     cli();
-    //putc_scroll('t');
     send_eoi(PIT_IRQ_NUM);
-    sti();
+    if(get_running_process_num()==0) return;
+    //putc_scroll('t');
+    pcb_t* pcb;
+    int i = next_pid( get_current_pcb()->pid );
+    for(; i!=get_current_pcb()->pid; i = next_pid(i) )
+    {
+        if(!is_running(i)) continue;
+        pcb = (pcb_t*) get_kernel_stack_bottom(i);
+        if( pcb->child == NULL ) break;
+    }
+
+    if( i!=get_current_pcb()->pid )
+    {
+        /* save current esp,ebp */
+        //int esp, ebp;
+        asm volatile("movl %%esp, %0" : "=r" (get_current_pcb()->current_esp) );
+        asm volatile("movl %%ebp, %0" : "=r" (get_current_pcb()->current_ebp) );
+        setup_task_page( i );
+        tss.esp0 = get_kernel_stack_bottom(i) - ASSIGNED_PCB_SIZE + MEM_DEFENSE_SIZE;
+        set_current_pid(i);
+
+        asm ("movl %0, %%esp" :: "r" (pcb->current_esp) );
+        asm ("movl %0, %%ebp" :: "r" (pcb->current_ebp) );
+
+        asm ("leave"  );
+        asm ("ret" );
+    }
 }
