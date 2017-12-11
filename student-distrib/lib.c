@@ -2,17 +2,40 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
-
+#include "paging.h"
 #define VIDEO       0xB8000
+#define VIDEO_PHYSICAL       (0xB8000+0x4000)
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
-
+#define KB_4        0x1000
 static int screen_x;
 static int screen_y;
 static int screen_x_before_input = 0;
 static int screen_y_before_input;
 static char* video_mem = (char *)VIDEO;
+static char* physical_video_mem = (char *)VIDEO_PHYSICAL;
+static char* TERMINAL_MEM[3] = { (char *)(VIDEO+0x1000), (char *)(VIDEO+0x2000), (char *)(VIDEO+0x3000) };
+
+static int display_terminal=0;
+static int active_terminal=0;
+
+
+void set_active_terminal(int terminal_id)
+{
+    if(terminal_id == display_terminal)
+        set_active_terminal_paging(terminal_id, 1);
+    else
+        set_active_terminal_paging(terminal_id, 0);
+    active_terminal = terminal_id;
+}
+
+void set_disiplay_terminal(int terminal_id)
+{
+    memcpy(TERMINAL_MEM[display_terminal], physical_video_mem, KB_4);
+    memcpy(physical_video_mem, TERMINAL_MEM[terminal_id], KB_4);
+    display_terminal = terminal_id;
+}
 
 /* void clear(void);
  * Inputs: void

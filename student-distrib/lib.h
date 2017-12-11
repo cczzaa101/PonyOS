@@ -7,6 +7,9 @@
 
 #include "types.h"
 
+void set_active_terminal(int terminal_id);
+void set_disiplay_terminal(int terminal_id);
+
 int32_t printf(int8_t *format, ...);
 void update_cursor(int x, int y);
 void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);

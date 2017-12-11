@@ -8,6 +8,9 @@
 #define USER_LEVEL_OFFSET  (2*1024)
 #define USER_SPACE_START 32
 #define USER_VIDEO_START 40
+#define KB_4        0x1000
+#define VIDEO_IND  (0xB8)
+#define STATIC_VIDEO_IND (0xB8 + 4)
 /*Initialize page table's entry to all 0
  *Input: ind = the index of entry
  *output: none
@@ -69,9 +72,9 @@ void page_directory_init(int ind)
     d(ind). aligned_address=0;
 }
 
-//set up video paging 
-//input,output£ºnone
- 
+//set up video paging
+//input,outputï¿½ï¿½none
+
 void setupt_video_user_level()
 {
     /* setup user video page table*/
@@ -124,6 +127,7 @@ void paging_init()
         page_table[i].read_write = 1;
         page_table[i].page_address = i;
     }
+    page_table[ STATIC_VIDEO_IND ].page_address = VIDEO_IND;
 
     page_directory_init(0);
     initial_dir.aligned_address = ((int)page_table)>>12; //clear the last 12 bits to ensure alignment
@@ -177,4 +181,24 @@ void setup_task_page(int ind)
               "orl $0x80000001, %eax;"
               "movl %eax,%cr0;"
     );
+}
+
+void set_active_terminal_paging(int terminal_id, int display)
+{
+    if(display==0)
+        page_table[ VIDEO_IND ].page_address = VIDEO_IND + terminal_id + 1;
+    else
+        page_table[ VIDEO_IND ].page_address = VIDEO_IND;
+
+        __asm__ ( "leal page_dir,%eax;"
+                  "movl %eax,%cr3;"
+
+                  "movl %cr4, %eax;"
+                  "orl $0x00000010, %eax;"
+                  "movl %eax, %cr4;"
+
+                  "movl %cr0,%eax;"
+                  "orl $0x80000001, %eax;"
+                  "movl %eax,%cr0;"
+        );
 }
