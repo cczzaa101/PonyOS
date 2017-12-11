@@ -290,6 +290,7 @@ void initialize_idt()
     }
     SET_IDT_ENTRY(idt[PIC_OFFSET + 1], keyboard_handler_wrapper);  //keyboard at irq 1
     SET_IDT_ENTRY(idt[PIC_OFFSET + 8], rtc_handler_wrapper);  //rtc at irq 8
+    SET_IDT_ENTRY(idt[PIC_OFFSET + 0], pit_handler_wrapper);  //pit at irq 8
 
     /* combined idt entries with exception handler */
 	SET_IDT_ENTRY(idt[0], exception_de);

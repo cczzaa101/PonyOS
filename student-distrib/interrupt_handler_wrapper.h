@@ -11,6 +11,8 @@ extern void rtc_handler_wrapper();
 /* assembly wrapper for general interrupt handler */
 extern void general_handler_wrapper();
 
+extern void pit_handler_wrapper();
+
 extern void back_to_user_mode(int entry);
 
 #endif

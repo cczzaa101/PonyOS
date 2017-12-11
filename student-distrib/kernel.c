@@ -13,6 +13,7 @@
 #include "idt.h"
 #include "paging.h"
 #include "fileSystem.h"
+#include "pit.h"
 #define RUN_TESTS
 
 /* Macros. */
@@ -146,24 +147,25 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the PIC */
     i8259_init();
-    
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
-    
-    initialize_idt(); 
+
+    initialize_idt();
     lidt(idt_desc_ptr);
     paging_init();
     filesys_init();
     keyboard_init();
     rtc_init();
+    pit_init();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-    
-    
+
+
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
