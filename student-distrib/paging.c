@@ -137,7 +137,7 @@ void paging_init()
     kernel_dir.present = 1;
     kernel_dir.aligned_address = 1024; //start at 4mb = 1024*4kb
     kernel_dir.size = 1; //4mb page
-    kernel_dir.user_supervisor = 1;
+    kernel_dir.user_supervisor = 0;
 
     setupt_video_user_level();
     set_active_terminal_paging(0, 1);
