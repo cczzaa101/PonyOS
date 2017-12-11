@@ -24,6 +24,8 @@ int cursor_ind;
 int hold_num;
 int terminal_read_ready;
 int need_nl = 0;
+static int display_terminal = 0;
+static int active_terminal = 0;
 /* keyboard initilization
  *
  * initialize the keyboard and let it begin generating interrupts
@@ -38,10 +40,9 @@ void keyboard_init()
     enable_irq(KEYBOARD_IRQ_NUM);
     memset(pressed_key, 0 , sizeof(pressed_key) );
     hold_num = 0;
-    cursor_ind = strlen("391OS> ");
+    cursor_ind = 0;
     terminal_read_ready = 0;
     cap_status = 0;
-    puts_scroll_refresh((char*)keyboard_buffer);
 }
 /* change by shift */
 unsigned char character_convert(unsigned char c)
@@ -58,7 +59,7 @@ unsigned char character_convert(unsigned char c)
 input: c = scancode*/
 void scancode_processing(unsigned char c)
 {
-    int i;
+    //int i;
     if( c>MAX_KEY_IND )
     {
         pressed_key[ RELEASE(c) ] = 0;
@@ -73,23 +74,30 @@ void scancode_processing(unsigned char c)
         {
             clear();
             memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
-            memcpy(keyboard_buffer, "391OS> ", strlen("391OS> "));
             cursor_ind = strlen((char*)keyboard_buffer);
+        }
+        else if ( (c==SCANCODE_N) && (pressed_key[SCANCODE_LEFTCONTROL]==1)  )
+        {
+            display_terminal = (display_terminal + 1)%3;
+            active_terminal = display_terminal;
+
+            set_disiplay_terminal( display_terminal );
+            set_active_terminal( active_terminal );
+        }
+        else if ( (c==SCANCODE_M) && (pressed_key[SCANCODE_LEFTCONTROL]==1)  )
+        {
+            active_terminal = (active_terminal + 1)%3;
+            set_active_terminal( active_terminal );
         }
         else if(scancodes_map[c]!=0)
         {
-            if(cursor_ind==MAX_KEY_IND+1)
+            if(cursor_ind>=MAX_KEY_IND+1)
             {
-                for(i=0; i<MAX_KEY_IND; i++)
-                {
-                    keyboard_buffer[i] = keyboard_buffer[i+1];
-                }
-                keyboard_buffer[MAX_KEY_IND] = character_convert(c);
-                memcpy(keyboard_buffer, "391OS> ", strlen("391OS> "));
             }
             else
             {
                 keyboard_buffer[cursor_ind++] = character_convert(c);
+                putc_scroll(character_convert(c));
             }
         }
     }
@@ -97,23 +105,20 @@ void scancode_processing(unsigned char c)
     if(c==SCANCODE_ENTER)
     {
         memset(print_buffer,0, sizeof(print_buffer));
-        int shell_offset = strlen((char*)"391OS> ");
-        for(i=shell_offset; i< strlen( (char*) keyboard_buffer); i++)
-            print_buffer[i - shell_offset] = keyboard_buffer[i];
-        //memcpy(print_buffer, keyboard_buffer, sizeof(keyboard_buffer) );
-        puts_scroll_refresh((char*)keyboard_buffer);
-        //puts_scroll("\n");
-        need_nl = 1;
+        memcpy(print_buffer, keyboard_buffer, sizeof(keyboard_buffer));
+        //putc_scroll('\n');
         memset(keyboard_buffer, 0 , sizeof(keyboard_buffer) );
-        memcpy(keyboard_buffer, "391OS> ", strlen((char*)"391OS> "));
         terminal_read_ready = 1;
-        cursor_ind = strlen((char*)keyboard_buffer);
+        cursor_ind = 0;
     }
 
     if(c==SCANCODE_BACKSPACE)
     {
-        if(cursor_ind!= strlen((char*)"391OS> "))
+        if(cursor_ind!= 0)
+        {
             keyboard_buffer[--cursor_ind] = '\0';
+            erase_last_ch();
+        }
         //cursor_ind--;
     }
     /*
@@ -145,8 +150,6 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
-    if(need_nl==1) { puts_scroll("\n",-1); need_nl = 0; }
-    puts_scroll_refresh((char*)keyboard_buffer);
     send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
 }
@@ -160,18 +163,11 @@ input: buf = the buffer to write from, count = length*/
 int32_t terminal_write(char* buf, int count)
 {
     cli();
-    if(strncmp("391OS> ", buf, strlen( (char*) "391OS> ")) ==0 ) return count;
     int lim = sizeof(print_buffer);
     if(count<lim) lim = count;
     memcpy( print_buffer, buf, lim );
     print_buffer[lim] = 0;
-    if(print_buffer[ lim-1 ] !='\n')
-    {
-        print_buffer[ lim  ] = '\n';
-        print_buffer[ lim+1 ] = 0;
-        lim++;
-    }
-    puts_scroll_refresh("");
+
     puts_scroll((char*)print_buffer,lim);
     sti();
     //putc_scroll('\n');

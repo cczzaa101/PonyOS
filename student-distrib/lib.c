@@ -254,6 +254,19 @@ void putc_scroll(uint8_t c) {
         screen_y = screen_y + screen_x/NUM_COLS;
         screen_x %= NUM_COLS;
     }
+    update_cursor(screen_x, screen_y);
+}
+
+void erase_last_ch() {
+    if( screen_x == 0 )
+    {
+        screen_x = NUM_COLS -1;
+        screen_y --;
+    }
+    else screen_x--;
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    update_cursor(screen_x, screen_y);
 }
 
 /* update cursor
@@ -285,7 +298,7 @@ int32_t puts_scroll(int8_t* s, int32_t len) {
         putc_scroll(s[index]);
         //index++;
     }
-    update_cursor(screen_x, screen_y);
+    //update_cursor(screen_x, screen_y);
     screen_x_before_input = screen_x;
     screen_y_before_input = screen_y;
     return index;
