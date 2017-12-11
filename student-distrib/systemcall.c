@@ -104,10 +104,15 @@ int32_t halt(int32_t status)
     return 0;
 }
 
+int32_t execute(const uint8_t* command)
+{
+    pcb_t* pcb = get_current_pcb();
+    return execute_with_terminal_num(command, pcb->terminal);
+}
 /*execute with filename and argument
  input: command
  output: 0 if succeful, -1 if fail*/
-int32_t execute (const uint8_t* command)
+int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num)
 {
     if(command == NULL) return -1;
 
@@ -164,6 +169,7 @@ int32_t execute (const uint8_t* command)
 
     pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
     pcb->current_ebp = pcb->current_esp = tss.esp0;
+    pcb->terminal = terminal_num;
     current_pid = pid;
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
     asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
