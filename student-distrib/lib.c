@@ -38,6 +38,7 @@ void set_disiplay_terminal(int terminal_id)
     memcpy(TERMINAL_MEM[display_terminal], physical_video_mem, KB_4);
     memcpy(physical_video_mem, TERMINAL_MEM[terminal_id], KB_4);
     display_terminal = terminal_id;
+    set_active_terminal(active_terminal);
     update_cursor(screen_x_multi[terminal_id], screen_y_multi[terminal_id]);
 }
 

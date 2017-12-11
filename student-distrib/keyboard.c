@@ -87,7 +87,7 @@ void scancode_processing(unsigned char c)
                 current_terminal = 2;
 
             set_disiplay_terminal( current_terminal );
-            set_active_terminal( current_terminal );
+            //set_active_terminal( current_terminal );
         }
         else if(scancodes_map[c]!=0)
         {

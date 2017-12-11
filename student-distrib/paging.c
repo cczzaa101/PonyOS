@@ -140,7 +140,7 @@ void paging_init()
     kernel_dir.user_supervisor = 1;
 
     setupt_video_user_level();
-
+    set_active_terminal_paging(0, 1);
     //1. page_dir address to cr3
     //2. set paging and protection bits of cr0
     //3. set cr4 to enable 4bits
@@ -186,9 +186,15 @@ void setup_task_page(int ind)
 void set_active_terminal_paging(int terminal_id, int display)
 {
     if(display==0)
+    {
         page_table[ VIDEO_IND ].page_address = VIDEO_IND + terminal_id + 1;
+        user_video_page_table[ VIDEO_IND ].page_address = VIDEO_IND + terminal_id + 1;
+    }
     else
+    {
         page_table[ VIDEO_IND ].page_address = VIDEO_IND;
+        user_video_page_table[ VIDEO_IND ].page_address = VIDEO_IND;
+    }
 
         __asm__ ( "leal page_dir,%eax;"
                   "movl %eax,%cr3;"
