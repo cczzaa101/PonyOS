@@ -17,8 +17,24 @@
 char arg_buf[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static int arg_available = 0;
-static int kernel_stack_bottom = ((0x0800000)-(0x2000));
+int current_pid=0;
+//static int kernel_stack_bottom = ((0x0800000)-(0x2000));
 static int entry_point;
+
+int get_kernel_stack_bottom(int pid)
+{
+    return 0x800000 - ASSIGNED_PCB_SIZE*(pid+1);
+}
+
+pcb_t* get_current_pcb()
+{
+    /*
+    int esp;
+    asm ("movl %%esp, %0" : "=r" (esp) );
+    esp = esp/ASSIGNED_PCB_SIZE*ASSIGNED_PCB_SIZE;
+    */
+    return (pcb_t*) get_kernel_stack_bottom(current_pid);
+}
 
 /*initialize pcb
   input: pid = process id
@@ -26,8 +42,7 @@ static int entry_point;
 void pcb_init(int pid)
 {
     int i;
-    kernel_stack_bottom -= ASSIGNED_PCB_SIZE;
-    pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+    pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
     pcb->pid = pid;
     /* stdin */
     (pcb->file_array)[0].read = terminal_read_wrapper;
@@ -42,7 +57,7 @@ void pcb_init(int pid)
     {
         (pcb->file_array)[i].flags = 0;
     }
-    pcb->parent = (int32_t*) ( kernel_stack_bottom + ASSIGNED_PCB_SIZE );
+    pcb->parent = (int32_t*) get_current_pcb();
 }
 
 /*get empty process id
@@ -64,16 +79,12 @@ input: status
 output: 0 if successful*/
 int32_t halt(int32_t status)
 {
-    int esp;
-    asm ("movl %%esp, %0" : "=r" (esp) );
-    esp = kernel_stack_bottom;
-    pcb_t* pcb = (pcb_t*) esp;
+    pcb_t* pcb = get_current_pcb();
 
     process_status[ pcb->pid ] = 0;
-    kernel_stack_bottom += ASSIGNED_PCB_SIZE;
     setup_task_page( ((pcb_t*)(pcb->parent)) -> pid ); //temporary solution, need change later
-
-    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
+    current_pid = ((pcb_t*)(pcb->parent)) -> pid ;
+    tss.esp0 = (int)(pcb->parent) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
     asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
     asm ("movl %0, %%eax" :: "r" (0) );
@@ -122,6 +133,7 @@ int32_t execute (const uint8_t* command)
 
     /* assign PCB */
     int pid = get_empty_pid();
+    if(pid==-1) return -1;
     process_status[pid] = 1;
     pcb_init(pid);
 
@@ -137,9 +149,10 @@ int32_t execute (const uint8_t* command)
 
 
     /* refresh tss */
-    tss.esp0 = kernel_stack_bottom + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
+    tss.esp0 = get_kernel_stack_bottom(pid) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
 
-    pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+    pcb_t* pcb = (pcb_t*) get_kernel_stack_bottom(pid);
+    current_pid = pid;
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
     asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
     asm volatile("movl %0, %%ebp" :: "r" (tss.esp0) );
@@ -159,7 +172,7 @@ int32_t open(const uint8_t* filename)
     int i;
     if( read_dentry_by_name ( filename, &temp ) == -1 ) return -1;
     pcb_t* pcb;
-    pcb = (pcb_t*) kernel_stack_bottom;
+    pcb = (pcb_t*) get_current_pcb();
     for(i = 0; i<FDT_SIZE; i++)
         if( (pcb->file_array)[i].flags == 0) break;
 
@@ -198,7 +211,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     if( (fd >= FDT_SIZE) || (fd<0) || (fd==1)  ) return -1;
     else
     {
-        pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+        pcb_t* pcb = (pcb_t*) get_current_pcb();
         if((pcb->file_array)[fd].flags==0) return -1;
         int offset = (pcb->file_array)[fd].file_position;
         int inode = (pcb->file_array)[fd].inode;
@@ -220,7 +233,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes)
     if( (fd >= FDT_SIZE) || (fd<0) || (fd==0) ) return -1;
     else
     {
-        pcb_t* pcb = (pcb_t*) kernel_stack_bottom;
+        pcb_t* pcb = (pcb_t*) get_current_pcb();
         if((pcb->file_array)[fd].flags==0) return -1;
         int offset = 0;
         int inode = (pcb->file_array)[fd].inode;
@@ -256,7 +269,7 @@ output: -1 if fail, 0 if success.*/
 int32_t close(int32_t fd)
 {
     pcb_t* pcb;
-    pcb = (pcb_t*) kernel_stack_bottom;
+    pcb = (pcb_t*) get_current_pcb();
     if( (fd >= FDT_SIZE) || (fd<=1) || ((pcb->file_array)[fd].flags==0) ) return -1;
     (pcb->file_array)[fd].flags = 0;
     return 0;
