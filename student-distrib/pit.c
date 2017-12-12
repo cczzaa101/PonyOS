@@ -81,10 +81,6 @@ void pit_handler()
         asm volatile("movl %0, %%esp" :: "r" (pcb->current_esp) );
         asm volatile("movl %0, %%ebp" :: "r" (pcb->current_ebp) );
 
-        asm volatile(
-            "movl %cr3,%eax \n \
-            movl %eax,%cr3"
-        );
         asm ("leave"  );
         asm ("ret" );
 

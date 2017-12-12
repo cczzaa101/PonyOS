@@ -5,9 +5,10 @@
 #include "x86_desc.h"
 #include "interrupt_handler_wrapper.h"
 #include "paging.h"
-char arg_buf[MAX_ARG_SIZE];
+char arg_buf[MAX_PID][MAX_ARG_SIZE];
+char fname[MAX_ARG_SIZE];
 char process_status[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-static int arg_available = 0;
+static int arg_available[MAX_PID] = {0};
 static int current_pid=-1;
 static int total_running_process = 0;
 //static int kernel_stack_bottom = ((0x0800000)-(0x2000));
@@ -25,6 +26,7 @@ void set_current_pid(int pid)
 
 int is_running(int pid)
 {
+    if(pid==0) return 0;
     return process_status[pid];
 }
 
@@ -75,7 +77,7 @@ output: id if found, -1 if not found*/
 int32_t get_empty_pid()
 {
     int i;
-    for(i=0; i<MAX_PID; i++)
+    for(i=1; i<MAX_PID; i++)
     {
         if( process_status[i] == 0 )
             return i;
@@ -122,7 +124,6 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int
     if(command == NULL) return -1;
     cli();
     int i,j,cnt = 0;
-    char fname[MAX_ARG_SIZE];
 
     for(i=0; i<strlen( (char*)command); i++)
         if( command[i] == ' ' ) break;
@@ -135,7 +136,7 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int
 
     /* check if executable */
     char executable_checking[4] = { 0x7f, 0x45, 0x4c, 0x46 }; //4 magic num for executable
-    char tempBuf[MAX_ARG_SIZE];
+    char tempBuf[EXEC_INFO_BYTES*2];
     filesys_read_by_name((unsigned char*)fname, (unsigned char*)tempBuf, EXEC_INFO_BYTES);
     for(j=0; j<4; j++)
     {
@@ -143,20 +144,24 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int
             return -1;
     }
 
-    /* copy argument */
-    for(;i<strlen( (char*)command); i++ )
-        if(command[i]!=' ') break;
-    for(;i<strlen( (char*)command); i++ )
-        arg_buf[cnt++] = command[i];
-    arg_buf[cnt] = '\0';
-    arg_available = 1;
-
     /* assign PCB */
     int pid = get_empty_pid();
     if(pid==-1) return -1;
     process_status[pid] = 1;
     total_running_process++;
     pcb_init(pid);
+
+    /* copy argument */
+
+    for(;i<strlen( (char*)command); i++ )
+        if(command[i]!=' ') break;
+    for(;i<strlen( (char*)command); i++ )
+        arg_buf[pid][cnt++] = command[i];
+    arg_buf[pid][cnt] = '\0';
+    if(strlen(arg_buf[pid])>0)
+        arg_available[pid] = 1;
+    else
+        arg_available[pid] = 0;
 
     /* assign page */
     setup_task_page(pid);
@@ -192,6 +197,7 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int
         asm volatile("movl %%esp, %0" : "=r" (prev_pcb->current_esp) );
         asm volatile("movl %%ebp, %0" : "=r" (prev_pcb->current_ebp) );
     }
+
     asm volatile("movl %%esp, %0" : "=r" (pcb->parent_esp) );
     asm volatile("movl %%ebp, %0" : "=r" (pcb->parent_ebp) );
     asm volatile("movl %0, %%ebp" :: "r" (tss.esp0) );
@@ -290,8 +296,8 @@ output: -1 if fail, 0 if success*/
 int32_t getargs(uint8_t* buf, int32_t nbytes)
 {
     if(buf == NULL ) return -1;
-    if(arg_available==0) return -1;
-    memcpy(buf, arg_buf, nbytes);
+    if(arg_available[current_pid]==0) return -1;
+    memcpy(buf, arg_buf[current_pid], nbytes);
     return 0;
 }
 
