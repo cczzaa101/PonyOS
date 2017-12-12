@@ -91,8 +91,26 @@ output: 0 if successful*/
 int32_t halt(int32_t status)
 {
     pcb_t* pcb = get_current_pcb();
+    if(total_running_process==1)
+    {
+        char tempBuf[EXEC_INFO_BYTES*2];
+        filesys_read_by_name((unsigned char*)"shell", (unsigned char*)tempBuf, EXEC_INFO_BYTES);
+
+        /*make a note of entry point */
+        int32_t * tempBuf_int = (int32_t *) tempBuf;
+        entry_point = tempBuf_int[6]; //at bytes 23~27, i.e. 28/4 = 7 for int
+        back_to_user_mode(entry_point);
+    }
+
     total_running_process--;
     process_status[ pcb->pid ] = 0;
+    if(pcb->is_terminal)
+    {
+        sti();
+        clear();
+        while(1){}
+    }
+
     setup_task_page( ((pcb_t*)(pcb->parent)) -> pid ); //temporary solution, need change later
     current_pid = ((pcb_t*)(pcb->parent)) -> pid ;
     ((pcb_t*)(pcb->parent)) -> child = NULL ;
@@ -182,7 +200,7 @@ int32_t execute_with_terminal_num (const uint8_t* command, int terminal_num, int
 
     pcb->terminal = terminal_num;
     pcb->parent = (int32_t*) prev_pcb;
-
+    pcb->is_terminal = is_terminal;
     if(is_terminal==0)
         ((pcb_t*)(pcb->parent)) ->child = (int32_t*) pcb;
 

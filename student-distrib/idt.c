@@ -168,6 +168,8 @@ void exception_pf()
 {
     cli();
     clear();
+    int tt=5;
+    asm volatile("movl %%cr2, %0" : "=r" (tt) );
     printf("14:Page-Fault!");
     while(1);
 }

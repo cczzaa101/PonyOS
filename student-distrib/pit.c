@@ -51,7 +51,7 @@ void pit_handler()
         return;
     }
     */
-    if(get_running_process_num()<=1) return;
+    //if(get_running_process_num()<=1) return;
     //putc_scroll('t');
     pcb_t* pcb;
     int i = next_pid( get_current_pcb()->pid );

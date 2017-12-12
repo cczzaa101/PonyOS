@@ -30,6 +30,7 @@ typedef struct{
     int32_t current_esp;//save for scheduling
     int32_t current_ebp;
     int32_t terminal;
+    int32_t is_terminal;
     file_desc_t file_array[FDT_SIZE];
     char available[FDT_SIZE];
     int32_t pid; //process id
