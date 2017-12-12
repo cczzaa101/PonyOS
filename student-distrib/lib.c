@@ -248,6 +248,33 @@ void shift_up()
     screen_x_multi[active_terminal] = 0;
 }
 
+/*shift up display
+input none
+output none*/
+void shift_up_display()
+{
+    int x,y;
+    for(y=0; y< NUM_ROWS-1; y++)
+    {
+        for(x=0; x< NUM_COLS; x++)
+        {
+            *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1)) = *(physical_video_mem + ((NUM_COLS * (y+1) + x) << 1));
+            *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+        }
+    }
+
+    y = NUM_ROWS-1;
+
+    for(x=0; x< NUM_COLS; x++)
+    {
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+    }
+
+    screen_y_multi[display_terminal] = NUM_ROWS-1;
+    screen_x_multi[display_terminal] = 0;
+}
+
 /* void putc_scroll(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -293,10 +320,10 @@ void putc_scroll_display(uint8_t c) {
         screen_y_multi[display_terminal]++;
         screen_x_multi[display_terminal] = 0;
         while(screen_y_multi[display_terminal] >= NUM_ROWS )
-            shift_up();
+            shift_up_display();
     } else {
         while(screen_y_multi[display_terminal] >= NUM_ROWS)
-            shift_up();
+            shift_up_display();
         *(uint8_t *)(physical_video_mem + ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1)) = c;
         *(uint8_t *)(physical_video_mem + ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1) + 1) = ATTRIB;
         screen_x_multi[display_terminal]++;
