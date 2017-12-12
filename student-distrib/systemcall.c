@@ -118,10 +118,6 @@ int32_t halt(int32_t status)
     tss.ss0 = KERNEL_DS;
     asm ("movl %0, %%esp" :: "r" (pcb->parent_esp) );
     asm ("movl %0, %%ebp" :: "r" (pcb->parent_ebp) );
-    asm volatile(
-        "movl %cr3,%eax \n \
-        movl %eax,%cr3"
-    );
     asm ("movl %0, %%eax" :: "r" (0) );
 
     asm ("leave"  );
