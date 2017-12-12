@@ -66,16 +66,27 @@ void pit_handler()
     {
         /* save current esp,ebp */
         //int esp, ebp;
-        asm volatile("movl %%esp, %0" : "=r" (get_current_pcb()->current_esp) );
-        asm volatile("movl %%ebp, %0" : "=r" (get_current_pcb()->current_ebp) );
+
+        pcb_t* prev_pcb = get_current_pcb();
+
         setup_task_page( i );
+        tss.ss0 = KERNEL_DS;
         tss.esp0 = get_kernel_stack_bottom(i) + ASSIGNED_PCB_SIZE - MEM_DEFENSE_SIZE;
         set_current_pid(i);
         set_active_terminal(pcb->terminal);
-        asm ("movl %0, %%esp" :: "r" (pcb->current_esp) );
-        asm ("movl %0, %%ebp" :: "r" (pcb->current_ebp) );
 
+        asm volatile("movl %%esp, %0" : "=r" (prev_pcb->current_esp) );
+        asm volatile("movl %%ebp, %0" : "=r" (prev_pcb->current_ebp) );
+
+        asm volatile("movl %0, %%esp" :: "r" (pcb->current_esp) );
+        asm volatile("movl %0, %%ebp" :: "r" (pcb->current_ebp) );
+
+        asm volatile(
+            "movl %cr3,%eax \n \
+            movl %eax,%cr3"
+        );
         asm ("leave"  );
         asm ("ret" );
+
     }
 }

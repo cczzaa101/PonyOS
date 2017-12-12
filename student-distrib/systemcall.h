@@ -45,7 +45,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes);
 int32_t do_nothing();
 int32_t close();
 int32_t vidmap(uint8_t **sreenstart);
-void initialize_terminals();
+
 pcb_t* get_current_pcb();
 int get_kernel_stack_bottom(int pid);
 int is_running(int pid);
