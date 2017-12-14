@@ -23,6 +23,15 @@ static char* TERMINAL_MEM[3] = { (char *)(VIDEO+0x1000), (char *)(VIDEO+0x2000),
 static int display_terminal=0;
 static int active_terminal=0;
 
+int get_active_terminal()
+{
+    return active_terminal;
+}
+
+int get_display_terminal()
+{
+    return display_terminal;
+}
 
 void set_active_terminal(int terminal_id)
 {
@@ -48,13 +57,12 @@ void set_disiplay_terminal(int terminal_id)
  * Function: Clears video memory */
 void clear(void) {
     int32_t i;
-    screen_x_multi[active_terminal] = screen_y_multi[active_terminal] = 0;
+    screen_x_multi[display_terminal] = screen_y_multi[display_terminal] = 0;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(physical_video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(physical_video_mem + (i << 1) + 1) = ATTRIB;
     }
-    if(active_terminal == display_terminal)
-        update_cursor(screen_x_multi[display_terminal], screen_y_multi[display_terminal]);
+    update_cursor(screen_x_multi[display_terminal], screen_y_multi[display_terminal]);
 }
 
 /* Standard printf().
@@ -240,6 +248,33 @@ void shift_up()
     screen_x_multi[active_terminal] = 0;
 }
 
+/*shift up display
+input none
+output none*/
+void shift_up_display()
+{
+    int x,y;
+    for(y=0; y< NUM_ROWS-1; y++)
+    {
+        for(x=0; x< NUM_COLS; x++)
+        {
+            *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1)) = *(physical_video_mem + ((NUM_COLS * (y+1) + x) << 1));
+            *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+        }
+    }
+
+    y = NUM_ROWS-1;
+
+    for(x=0; x< NUM_COLS; x++)
+    {
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+    }
+
+    screen_y_multi[display_terminal] = NUM_ROWS-1;
+    screen_x_multi[display_terminal] = 0;
+}
+
 /* void putc_scroll(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -274,6 +309,40 @@ void erase_last_ch() {
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_multi[active_terminal] + screen_x_multi[active_terminal]) << 1) + 1) = ATTRIB;
     if(active_terminal == display_terminal)
         update_cursor(screen_x_multi[active_terminal], screen_y_multi[active_terminal]);
+}
+
+/* void putc_scroll(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console */
+void putc_scroll_display(uint8_t c) {
+    if(c == '\n' || c == '\r') {
+        screen_y_multi[display_terminal]++;
+        screen_x_multi[display_terminal] = 0;
+        while(screen_y_multi[display_terminal] >= NUM_ROWS )
+            shift_up_display();
+    } else {
+        while(screen_y_multi[display_terminal] >= NUM_ROWS)
+            shift_up_display();
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1)) = c;
+        *(uint8_t *)(physical_video_mem + ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1) + 1) = ATTRIB;
+        screen_x_multi[display_terminal]++;
+        screen_y_multi[display_terminal] = screen_y_multi[display_terminal] + screen_x_multi[display_terminal]/NUM_COLS;
+        screen_x_multi[display_terminal] %= NUM_COLS;
+    }
+    update_cursor(screen_x_multi[display_terminal], screen_y_multi[display_terminal]);
+}
+
+void erase_last_ch_display() {
+    if( screen_x_multi[display_terminal] == 0 )
+    {
+        screen_x_multi[display_terminal] = NUM_COLS -1;
+        screen_y_multi[display_terminal] --;
+    }
+    else screen_x_multi[display_terminal]--;
+    *(uint8_t *)(physical_video_mem+ ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1)) = ' ';
+    *(uint8_t *)(physical_video_mem + ((NUM_COLS * screen_y_multi[display_terminal] + screen_x_multi[display_terminal]) << 1) + 1) = ATTRIB;
+    update_cursor(screen_x_multi[display_terminal], screen_y_multi[display_terminal]);
 }
 
 /* update cursor

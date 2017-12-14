@@ -4,8 +4,23 @@
 .global keyboard_handler_wrapper
 .global rtc_handler_wrapper
 .global general_handler_wrapper
+.global pit_handler_wrapper
 .global back_to_user_mode
 .align 4
+
+/*
+assembly wrapper for PIT handler
+input: None
+output: None
+
+*/
+pit_handler_wrapper:
+    pusha
+    cld
+    call pit_handler
+    popa
+    sti
+    iret
 
 /*
 assembly wrapper for keyboard handler

@@ -6,9 +6,12 @@
 #define _LIB_H
 
 #include "types.h"
-
+int get_active_terminal();
+int get_display_terminal();
 void set_active_terminal(int terminal_id);
 void set_disiplay_terminal(int terminal_id);
+void putc_scroll_display(uint8_t c);
+void erase_last_ch_display();
 
 int32_t printf(int8_t *format, ...);
 void update_cursor(int x, int y);

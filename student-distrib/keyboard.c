@@ -3,6 +3,7 @@
 #include "keyboard.h"
 #include "scancode.h"
 #include "tests.h"
+#include "systemcall.h"
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_COMMAND_PORT 0x64
@@ -23,9 +24,9 @@ unsigned char print_buffer[TERMINAL_NUM][PRINT_LIM];
 int cap_status;
 int cursor_ind[TERMINAL_NUM];
 int hold_num;
-int terminal_read_ready;
+int terminal_read_ready[TERMINAL_NUM];
 int need_nl = 0;
-static int current_terminal = 0;
+volatile int terminal_2_running = 0, terminal_3_running = 0;
 /* keyboard initilization
  *
  * initialize the keyboard and let it begin generating interrupts
@@ -41,8 +42,8 @@ void keyboard_init()
     memset(pressed_key, 0 , sizeof(pressed_key) );
     memset(keyboard_buffer, 0 , sizeof(keyboard_buffer));
     memset(cursor_ind, 0 , sizeof(cursor_ind));
+    memset(terminal_read_ready, 0,  sizeof(terminal_read_ready));
     hold_num = 0;
-    terminal_read_ready = 0;
     cap_status = 0;
 }
 /* change by shift */
@@ -74,50 +75,70 @@ void scancode_processing(unsigned char c)
         if( (c==SCANCODE_L) && (pressed_key[SCANCODE_LEFTCONTROL]==1)  )
         {
             clear();
-            memset(keyboard_buffer[current_terminal], 0 , sizeof(keyboard_buffer[current_terminal]) );
-            cursor_ind[current_terminal] = 0;
+            memset(keyboard_buffer[get_display_terminal()], 0 , sizeof(keyboard_buffer[get_display_terminal()]) );
+            cursor_ind[get_display_terminal()] = 0;
         }
         else if (  (pressed_key[SCANCODE_LEFTALT]==1)  )
         {
             if(c == SCANCODE_F1)
-                current_terminal = 0;
+                set_disiplay_terminal(0);
             if(c == SCANCODE_F2)
-                current_terminal = 1;
-            if(c == SCANCODE_F3)
-                current_terminal = 2;
+            {
+                set_disiplay_terminal(1);
 
-            set_disiplay_terminal( current_terminal );
-            //set_active_terminal( current_terminal );
+                if(!terminal_2_running)
+                {
+                    if(get_empty_pid()==-1) return;
+                    terminal_2_running = 1;
+                    //sti();
+                    execute_with_terminal_num((unsigned char *)"shell",1,1);
+                }
+
+            }
+            if(c == SCANCODE_F3)
+            {
+                set_disiplay_terminal(2);
+
+                if(!terminal_3_running)
+                {
+                    if(get_empty_pid()==-1) return;
+                    terminal_3_running = 1;
+                    //sti();
+                    execute_with_terminal_num((unsigned char *)"shell",2,1);
+                }
+
+            }
+            //set_active_terminal( get_active_terminal() );
         }
         else if(scancodes_map[c]!=0)
         {
-            if(cursor_ind[current_terminal]>=MAX_KEY_IND+1)
+            if(cursor_ind[get_display_terminal()]>=MAX_KEY_IND+1)
             {
             }
             else
             {
-                keyboard_buffer[current_terminal][ cursor_ind[current_terminal]++ ] = character_convert(c);
-                putc_scroll(character_convert(c));
+                keyboard_buffer[get_display_terminal()][ cursor_ind[get_display_terminal()]++ ] = character_convert(c);
+                putc_scroll_display(character_convert(c));
             }
         }
     }
 
     if(c==SCANCODE_ENTER)
     {
-        memset(print_buffer[current_terminal],0, sizeof(print_buffer[current_terminal]));
-        memcpy(print_buffer[current_terminal], keyboard_buffer[current_terminal], sizeof(keyboard_buffer[current_terminal]));
+        memset(print_buffer[get_display_terminal()],0, sizeof(print_buffer[get_display_terminal()]));
+        memcpy(print_buffer[get_display_terminal()], keyboard_buffer[get_display_terminal()], sizeof(keyboard_buffer[get_display_terminal()]));
         //putc_scroll('\n');
-        memset(keyboard_buffer[current_terminal], 0 , sizeof(keyboard_buffer[current_terminal]) );
-        terminal_read_ready = 1;
-        cursor_ind[current_terminal] = 0;
+        memset(keyboard_buffer[get_display_terminal()], 0 , sizeof(keyboard_buffer[get_display_terminal()]) );
+        terminal_read_ready[get_display_terminal()] = 1;
+        cursor_ind[get_display_terminal()] = 0;
     }
 
     if(c==SCANCODE_BACKSPACE)
     {
-        if(cursor_ind[current_terminal]!= 0)
+        if(cursor_ind[get_display_terminal()]!= 0)
         {
-            keyboard_buffer[current_terminal][ --cursor_ind[current_terminal] ] = '\0';
-            erase_last_ch();
+            keyboard_buffer[get_display_terminal()][ --cursor_ind[get_display_terminal()] ] = '\0';
+            erase_last_ch_display();
         }
         //cursor_ind--;
     }
@@ -141,6 +162,7 @@ void scancode_processing(unsigned char c)
 void keyboard_interrupt_handler()
 {
     cli(); //disable interrupts
+    send_eoi(KEYBOARD_IRQ_NUM);
     //clear();
     unsigned char placeholder;
     while( (inb(KEYBOARD_STATUS_PORT)&0x1)>0 ) //use 0x1 to check the last bit, whether the buffer is still full.
@@ -150,7 +172,6 @@ void keyboard_interrupt_handler()
         interruption_test('k', placeholder);
         //printf("%c",keyboard_buffer);
     }
-    send_eoi(KEYBOARD_IRQ_NUM);
     sti(); //re-enable interrupts
 }
 /*terminnal open function*/
@@ -163,12 +184,12 @@ input: buf = the buffer to write from, count = length*/
 int32_t terminal_write(char* buf, int count)
 {
     cli();
-    int lim = sizeof(print_buffer[current_terminal]);
+    int lim = sizeof(print_buffer[get_active_terminal()]);
     if(count<lim) lim = count;
-    memcpy( print_buffer[current_terminal], buf, lim );
-    print_buffer[current_terminal][lim] = 0;
+    memcpy( print_buffer[get_active_terminal()], buf, lim );
+    print_buffer[get_active_terminal()][lim] = 0;
 
-    puts_scroll((char*)print_buffer[current_terminal],lim);
+    puts_scroll((char*)print_buffer[get_active_terminal()],lim);
     sti();
     //putc_scroll('\n');
     return count;
@@ -189,11 +210,11 @@ int32_t terminal_close()
 int32_t terminal_read(char* buf, int count)
 {
     sti();
-    while(terminal_read_ready!=1)
+    while(terminal_read_ready[get_active_terminal()]!=1)
     {
     }
-    memcpy(buf, print_buffer[current_terminal], count);
-    terminal_read_ready = 0;
+    memcpy(buf, print_buffer[get_active_terminal()], count);
+    terminal_read_ready[get_active_terminal()] = 0;
     return strlen(buf);
 }
 
