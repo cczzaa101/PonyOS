@@ -88,6 +88,7 @@ void scancode_processing(unsigned char c)
 
                 if(!terminal_2_running)
                 {
+                    if(get_empty_pid()==-1) return;
                     terminal_2_running = 1;
                     //sti();
                     execute_with_terminal_num((unsigned char *)"shell",1,1);
@@ -100,6 +101,7 @@ void scancode_processing(unsigned char c)
 
                 if(!terminal_3_running)
                 {
+                    if(get_empty_pid()==-1) return;
                     terminal_3_running = 1;
                     //sti();
                     execute_with_terminal_num((unsigned char *)"shell",2,1);

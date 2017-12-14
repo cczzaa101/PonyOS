@@ -13,7 +13,7 @@
 #define USER_PAGE_END 0x8400000
 #define ASSIGNED_PCB_SIZE 0x2000
 #define EXEC_INFO_BYTES 28
-#define MAX_PID 32
+#define MAX_PID 8
 #define MEM_DEFENSE_SIZE 8
 //int32_t (*file_operation[])(char*, int32_t) = { terminal_read, dir_read, filesys_read }
 typedef struct{
@@ -46,7 +46,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes);
 int32_t do_nothing();
 int32_t close();
 int32_t vidmap(uint8_t **sreenstart);
-
+int32_t get_empty_pid();
 pcb_t* get_current_pcb();
 int get_kernel_stack_bottom(int pid);
 int is_running(int pid);
